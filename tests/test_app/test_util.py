@@ -38,9 +38,9 @@ class CommandLineApplicationTests(TestCase):
         self.app_params_WorkingDir_w_space =CLAppTester({'-F':'p_file.txt'},\
             WorkingDir='/tmp/test space')
         self.app_params_TmpDir =CLAppTester({'-F':'p_file.txt'},\
-            TmpDir='/tmp2')
+            TmpDir='/tmp/tmp2')
         self.app_params_TmpDir_w_space =CLAppTester({'-F':'p_file.txt'},\
-            TmpDir='/tmp space')
+            TmpDir='/tmp/tmp space')
         self.data = 42
         script = """#!/usr/bin/env python
 #This is a test script intended to test the CommandLineApplication
@@ -394,7 +394,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         # TmpDir is what we expect
-        self.assertEqual(app.TmpDir,'/tmp2')
+        self.assertEqual(app.TmpDir,'/tmp/tmp2')
         #test_command
         self.assertEqual(app.BaseCommand,\
             'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
@@ -422,7 +422,7 @@ f.close()
         self.assertEqual(app.InputHandler,'_input_as_string')
         assert not app.SuppressStderr
         # TmpDir is what we expect
-        self.assertEqual(app.TmpDir,'/tmp space')
+        self.assertEqual(app.TmpDir,'/tmp/tmp space')
         #test_command
         self.assertEqual(app.BaseCommand,\
             'cd "/tmp/"; ./CLAppTester.py -F "p_file.txt"')
@@ -591,8 +591,7 @@ class RemoveTests(TestCase):
         remove('/tmp/CLAppTester.py') 
         remove('/tmp/test space/CLAppTester.py') 
         remove('/tmp/CLApp Tester.py') 
-        rmdir('/tmp space')
-        rmdir('/tmp2')
+        rmdir('/tmp/tmp space')
         rmdir('/tmp/test')
         rmdir('/tmp/test space')
        
