@@ -27,7 +27,7 @@ def find_smallest_index(matrix):
     
     for UPGMA clustering elements on the diagonal should first be
     substituted with a very large number so that they are always 
-    larger than the rest if the values in the array"""
+    larger than the rest if the values in the array."""
     #get the shape of the array as a tuple (e.g. (3,3))
     shape = matrix.shape
     #turn into a 1 by x array and get the index of the lowest number
