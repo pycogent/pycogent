@@ -14,9 +14,11 @@ differ); assertNotEqualItems verifies that two lists do not contain the same
 set of items.
 """
 #from contextlib import contextmanager
-import numpy; from numpy import testing, array
+import numpy; from numpy import testing, array, asarray, ravel, zeros, \
+        concatenate
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
 from cogent.util.misc import recursive_flatten
+from cogent.maths.stats.test import t_two_sample, G_ind
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -81,6 +83,8 @@ class TestCase(orig_TestCase):
     BEWARE: Do not start any method with 'test' unless you want it to actually
     run as a test suite in every instance!
     """
+    _suite_pvalue = None # see TestCase._set_suite_pvalue()
+
     def _get_values_from_matching_dicts(self, d1, d2):
         """Gets corresponding values from matching dicts"""
         if set(d1) != set (d2):
@@ -373,4 +377,131 @@ class TestCase(orig_TestCase):
             return
         raise self.failureException, \
         (msg or 'Item %s should not have been in %s' % (`item`, `observed`))
+
+    def assertGreaterThan(self, observed, value, msg=None):
+        """Fail if observed is <= value"""
+        try:
+            if value is None or observed is None:
+                raise ValueError
+            if (asarray(observed) > value).all():
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s has elements <= %s' % (`observed`, `value`))
+
+    def assertLessThan(self, observed, value, msg=None):
+        """Fail if observed is >= value"""
+        try:
+            if value is None or observed is None:
+                raise ValueError
+            if (asarray(observed) < value).all():
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s has elements >= %s' % (`observed`, `value`))
+
+    def assertIsBetween(self, observed, min_value, max_value, msg=None):
+        """Fail if observed is not between min_value and max_value"""
+        try:
+            if min_value is None or max_value is None or observed is None:
+                raise ValueError
+            if (asarray(observed) < max_value).all() and \
+               (asarray(observed) > min_value).all():
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s has elements not between %s, %s' % \
+        (`observed`, `min_value`, `max_value`))
+    
+    def assertIsProb(self, observed, msg=None):
+        """Fail is observed is not between 0.0 and 1.0"""
+        try:
+            if observed is None:
+                raise ValueError
+            if (asarray(observed) >= 0.0).all() and \
+               (asarray(observed) <= 1.0).all():
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s has elements that are not probs' % (`observed`))
+
+    def _set_suite_pvalue(self, pvalue):
+        """Sets the test suite pvalue to be used in similarity tests
+
+        This value is by default None. The pvalue used in this case is
+        specified in the test module itself. The purpose of this method is to
+        set the pvalue to be used when running a massive test suite
+        """
+        self._suite_pvalue = pvalue
+
+    def assertSimiliarMeans(self, observed, expected, pvalue=0.01, msg=None):
+        """Fail if observed p is lower than pvalue"""
+        if self._suite_pvalue:
+            pvalue = self._suite_pvalue
+
+        t, p = t_two_sample(asarray(observed), asarray(expected))
+            
+        if p > pvalue:
+            return
+        else:
+            raise self.failureException, \
+            (msg or 'p-value %s, t-test p %s' % (`pvalue`, `p`))
+
+    def assertSimiliarFreqs(self, observed, expected, pvalue=0.01, msg=None):
+        """Fail if observed p is lower than pvalue"""
+        if self._suite_pvalue:
+            pvalue = self._suite_pvalue
+
+        obs_ravel = ravel(asarray(observed))
+        exp_ravel = ravel(asarray(expected))
+            
+        m = zeros((2,len(obs_ravel)))
+        m[0,:] = obs_ravel
+        m[1,:] = exp_ravel
+        
+        G, p = G_ind(m)
+
+        if p > pvalue:
+            return
+        else:
+            raise self.failureException, \
+            (msg or 'p-value %s, G-test p %s' % (`pvalue`, `p`))
+            
+    def assertIsPermutation(self, observed, items, msg=None):
+        """Fail if observed is not a permutation of items"""
+        try:
+            self.assertEqualItems(observed, items)
+            self.assertNotEqual(observed, items)
+            return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s is not a permuation of items %s' % \
+        (`observed`, `items`))
+ 
+    def assertSameObj(self, observed, expected, msg=None):
+        """Fail if 'observed is not expected'"""
+        try:
+            if observed is expected:
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s is not the same as expected %s' % \
+        (`observed`, `expected`))
+
+    def assertNotSameObj(self, observed, expected, msg=None):
+        """Fail if 'observed is expected'"""
+        try:
+            if observed is not expected:
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s is the same as expected %s' % \
+        (`observed`, `expected`))
 
