@@ -172,7 +172,7 @@ class Enumeration(tuple):
         if len(self._quick_motifset) != len(self):
             #got duplicates: show user what they sent in
             raise TypeError, 'Alphabet initialized with duplicate values:\n' +\
-                str(motifset)
+                str(self)
         self._obj_to_index = dict(zip(self, range(len(self))))
         #handle gaps
         self.Gap = Gap
