@@ -5,13 +5,30 @@ Specific Extensions:
 
 assertFloatEqual, assertFloatEqualAbs, and assertFloatEqualRel give fine-
 grained control over how floating point numbers (or lists thereof) are tested 
-for equality. assertContains and assertNotContains give more helpful error 
+for equality. 
+
+assertContains and assertNotContains give more helpful error 
 messages when testing whether an observed item is present or absent in a set 
-of possiblities. assertSameItems and assertEqualItems test the items in a list 
+of possiblities. Ditto assertGreaterThan, assertLessThan, assertBetween, and
+assertIsProb (which is a special case of assertBetween requiring the result
+to between 0 and 1).
+
+assertSameItems and assertEqualItems test the items in a list 
 for pairwise identity and equality respectively (i.e. the observed and 
 expected values must have the same number of each item, though the order can 
-differ); assertNotEqualItems verifies that two lists do not contain the same
-set of items.
+differ); assertNotEqualItems verifies that two lists do not contain equal sets
+of items.
+
+assertSimilarMeans and assertSimilarFreqs allow you to test stochastic results
+by setting an explicit P-value and checking that the result is not improbable
+given the expected P-value. Please use these instead of guessing confidence
+intervals! The major advantage is that you can reset the P-value gloabally over
+the whole test suite, so that rare failures don't occur every time.
+
+assertIsPermutation checks that you get a permutation of an expected result that
+differs from the original result, repeating the test a specified number of times
+before giving up and assuming that the result is always the same.
+
 """
 #from contextlib import contextmanager
 import numpy; from numpy import testing, array, asarray, ravel, zeros, \
@@ -23,7 +40,7 @@ from cogent.maths.stats.test import t_two_sample, G_ind
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
-                    "Zongzhi Liu", "Micah Hamady"]
+                    "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
