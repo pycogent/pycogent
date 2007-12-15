@@ -428,9 +428,6 @@ class TestCase(orig_TestCase):
             if min_value >= max_value:
                 raise ValueError
 
-            #if (asarray(observed) < max_value).all() and \
-            #   (asarray(observed) > min_value).all():
-            #    return
             if logical_and(asarray(observed) < max_value, 
                            asarray(observed) > min_value).all():
                 return

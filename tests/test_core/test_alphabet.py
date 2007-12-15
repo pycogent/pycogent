@@ -227,7 +227,7 @@ class CharAlphabetTests(TestCase):
         rp = r.Pairs
         self.assertEqual(len(rp), 16)
         rp2 = r.Pairs
-        assert rp is rp2
+        self.assertSameObj(rp, rp2)
 
     def test_triples(self):
         """triples should cache the same object."""
@@ -235,7 +235,7 @@ class CharAlphabetTests(TestCase):
         rt = r.Triples
         self.assertEqual(len(rt), 64)
         rt2 = r.Triples
-        assert rt is rt2
+        self.assertSameObj(rt, rt2)
 
 
 class JointEnumerationTests(TestCase):

@@ -95,7 +95,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(VA(self.aln2))
             if x > 0:
-                assert results[x] == results[x-1]
+                self.assertEqual(results[x], results[x-1])
 
     def test_VOR_exact(self):
         """VOR: should give exact results when using pseudo_seqs_exact"""
@@ -118,7 +118,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(VOR(self.aln2))
             if x > 0:
-                assert results[x] == results[x-1]
+                self.assertEqual(results[x], results[x-1])
         
     def test_VOR_force_mc(self):
         """VOR: should result in good approximation when using monte carlo"""
@@ -145,7 +145,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(VOR(self.aln2,force_monte_carlo=True))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
 
     def test_VOR_mc_threshold(self):
         """VOR: should apply monte carlo when # of pseudo seqs > mc_threshold
@@ -160,7 +160,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(VOR(self.aln2,mc_threshold=15))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
     
     def test_mVOR(self):
         """mVOR: should return weights closer to the 'True' weights"""
@@ -193,7 +193,7 @@ class VoronoiTests(GeneralTests):
         for x in range(5):
             results.append(mVOR(self.aln4,order="ABC"))
             if x > 0:
-                assert results[x] != results[x-1]
+                self.assertNotEqual(results[x], results[x-1])
 
 class PositionBasedTests(GeneralTests):
     """Contains tests for PB (=position-based) method"""
@@ -277,7 +277,10 @@ class AclTests(GeneralTests):
         self.assertFloatEqual(w_tree8['A'], w_tree8['C'],err)
         self.assertFloatEqual(w_tree8['D'], w_tree8['E'],err)
         self.assertFloatEqual(w_tree8['F'], w_tree8['G'],err)
-        assert w_tree8['A'] > w_tree8['D'] > w_tree8['H'] > w_tree8['F']
+
+        self.assertGreaterThan(w_tree8['A'], w_tree8['D'])
+        self.assertGreaterThan(w_tree8['D'], w_tree8['H'])
+        self.assertGreaterThan(w_tree8['H'], w_tree8['F'])
 
 class GscTests(GeneralTests):
     """Tests for GSC functionality"""
