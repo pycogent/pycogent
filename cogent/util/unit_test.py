@@ -32,7 +32,7 @@ before giving up and assuming that the result is always the same.
 """
 #from contextlib import contextmanager
 import numpy; from numpy import testing, array, asarray, ravel, zeros, \
-        concatenate
+        logical_and, logical_or
 from unittest import main, TestCase as orig_TestCase, TestSuite, findTestCases
 from cogent.util.misc import recursive_flatten
 from cogent.maths.stats.test import t_two_sample, G_ind
@@ -424,15 +424,40 @@ class TestCase(orig_TestCase):
         try:
             if min_value is None or max_value is None or observed is None:
                 raise ValueError
-            if (asarray(observed) < max_value).all() and \
-               (asarray(observed) > min_value).all():
+
+            if min_value >= max_value:
+                raise ValueError
+
+            #if (asarray(observed) < max_value).all() and \
+            #   (asarray(observed) > min_value).all():
+            #    return
+            if logical_and(asarray(observed) < max_value, 
+                           asarray(observed) > min_value).all():
                 return
         except:
             pass
         raise self.failureException, \
         (msg or 'Observed %s has elements not between %s, %s' % \
         (`observed`, `min_value`, `max_value`))
-    
+ 
+    def assertIsNotBetween(self, observed, min_value, max_value, msg=None):
+        """Fail if observed is between min_value and max_value"""
+        try:
+            if min_value is None or max_value is None or observed is None:
+                raise ValueError
+
+            if min_value >= max_value:
+                raise ValueError
+            
+            if logical_or(asarray(observed) >= max_value,
+                          asarray(observed) <= min_value).all():
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s has elements between %s, %s' % \
+        (`observed`, `min_value`, `max_value`))
+        
     def assertIsProb(self, observed, msg=None):
         """Fail is observed is not between 0.0 and 1.0"""
         try:

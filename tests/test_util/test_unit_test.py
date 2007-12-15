@@ -9,7 +9,7 @@ from sys import exc_info
 
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley"]
+__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
@@ -799,6 +799,11 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertLessThan, observed, 3)
         self.assertRaises(AssertionError, self.assertLessThan, observed, 3.0)
 
+    def test_assertIsBetween_bounds(self):
+        """assertIsBetween should raise if min_value >= max_value"""
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 6, 3)
+        self.assertRaises(AssertionError, self.assertIsBetween, 5, 3, 3)
+ 
     def test_assertIsBetween_equal(self):
         """assertIsBetween should raise when a value is equal to either bound"""
         self.assertRaises(AssertionError, self.assertIsBetween, 1, 1, 5)
@@ -1087,6 +1092,108 @@ class TestCaseTests(TestCase):
         self.assertRaises(AssertionError, self.assertNotSameObj, None, None)
         bar = lambda x:5
         self.assertRaises(AssertionError, self.assertNotSameObj, bar, bar)
+
+    def test_assertIsNotBetween_bounds(self):
+        """assertIsNotBetween should raise if min_value >= max_value"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 5, 4, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 5, 3, 3)
+
+    def test_assertIsNotBetween_equals(self):
+        """assertIsNotBetween should pass when equal on either bound"""
+        self.assertIsNotBetween(1, 1, 2)
+        self.assertIsNotBetween(1.0, 1, 2)
+        self.assertIsNotBetween(1, 1.0, 2)
+        self.assertIsNotBetween(1.0, 1.0, 2)
+        self.assertIsNotBetween(2, 1, 2)
+        self.assertIsNotBetween(2.0, 1, 2)
+        self.assertIsNotBetween(2, 1, 2.0)
+        self.assertIsNotBetween(2.0, 1, 2.0)
+
+    def test_assertIsNotBetween_None(self):
+        """assertIsNotBetween should raise when compared against None"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, None, 1, 2)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 1, None, 2)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 1, 2, None)
+
+    def test_assertIsNotBetween_numbers_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1,2,3)
+        self.assertIsNotBetween(4,2,3)
+        self.assertIsNotBetween(-1,-3,-2)
+        self.assertIsNotBetween(-4,-3,-2)
+        self.assertIsNotBetween(2,-1,1)
+
+    def test_assertIsNotBetween_numbers_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2, 1, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 0, -1, 1)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, -2, -3, -1)
+
+    def test_assertIsNotBetween_numbers_list_true(self):
+        """assertIsNotBetween should pass when all elements are out of bounds"""
+        obs = [1,2,3,4,5]
+        self.assertIsNotBetween(obs, 5, 10)
+        self.assertIsNotBetween(obs, -2, 1)
+
+    def test_assertIsNotBetween_numbers_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1,2,3,4,5]
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 3, 7)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, -3, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, obs, 2, 4)
+        
+    def test_assertIsNotBetween_float_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1.0, 2.0, 3.0)
+        self.assertIsNotBetween(4.0, 2.0, 3.0)
+        self.assertIsNotBetween(-1.0, -3.0, -2.0)
+        self.assertIsNotBetween(-4.0, -3.0, -2.0)
+        self.assertIsNotBetween(2.0, -1.0, 1.0)
+
+    def test_assertIsNotBetween_float_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0,1.0,3.0)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 0.0,-1.0,1.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween,-2.0,-3.0,-1.0)
+
+    def test_assertIsNotBetween_float_list_true(self):
+        """assertIsNotBetween should pass when all elements are out of bounds"""
+        obs = [1.0, 2.0, 3.0, 4.0, 5.0]
+        self.assertIsNotBetween(obs, 5.0, 10.0)
+        self.assertIsNotBetween(obs, -2.0, 1.0)
+
+    def test_assertIsNotBetween_float_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1.0, 2.0, 3.0, 4.0, 5.0]
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, -3.0,3.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 2.0, 4.0)
+    def test_assertIsNotBetween_mixed_true(self):
+        """assertIsNotBetween should pass when a number is not in bounds"""
+        self.assertIsNotBetween(1, 2.0, 3.0)
+        self.assertIsNotBetween(1.0, 2, 3.0)
+        self.assertIsNotBetween(1.0, 2.0, 3)
+
+    def test_assertIsNotBetween_mixed_false(self):
+        """assertIsNotBetween should raise when a number is in bounds"""
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0, 1.0, 3)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2.0, 1, 3.0)
+        self.assertRaises(AssertionError, self.assertIsNotBetween, 2, 1.0, 3.0)
+
+    def test_assertIsNotBetween_mixed_list_true(self):
+        """assertIsNotBetween should pass when all elements are not in bounds"""
+        obs = [1, 2.0, 3, 4.0, 5.0]
+        self.assertIsNotBetween(obs, 5.0, 10.0)
+        self.assertIsNotBetween(obs, 5, 10.0)
+        self.assertIsNotBetween(obs, 5.0, 10)
+
+    def test_assertIsNotBetween_mixed_list_false(self):
+        """assertIsNotBetween should raise when any element is in bounds"""
+        obs = [1, 2.0, 3, 4.0, 5.0]
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3, 7.0)
+        self.assertRaises(AssertionError,self.assertIsNotBetween, obs, 3.0, 7)
+
 if __name__ == '__main__':
     main()
             
