@@ -1,10 +1,8 @@
 #!/bin/sh
 
-# for automated testing
-# check if using alternate python install 
+# for automated testing - check if using alternate python install 
 PYTHON_EXE=python
 if [ $PYTHON_TEST_EXE ]; then
-    echo "Test env set!";
     PYTHON_EXE=$PYTHON_TEST_EXE; 
 fi
 
