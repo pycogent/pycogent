@@ -559,11 +559,17 @@ class PairedRegionTests(TestCase):
         for i in Wobble:
             for j in Wobble[i]:
                 assert (i, j) in states.keys()
-        expected = {('A','U'):num_to_do/14, ('U','A'):num_to_do/14,
-                    ('C','G'):num_to_do/14*4, ('G','C'):num_to_do/14*4,
-                    ('U','G'):num_to_do/14*2, ('G','U'):num_to_do/14*2,}
-        for key, val in expected.items():
-            self.assertFloatEqualAbs(val, states[key], 130) #conservative?
+        expected_dict = {('A','U'):num_to_do/14, ('U','A'):num_to_do/14,
+                        ('C','G'):num_to_do/14*4, ('G','C'):num_to_do/14*4,
+                        ('U','G'):num_to_do/14*2, ('G','U'):num_to_do/14*2,}
+        # the following for loop was replaced with the assertSimiliarFreqs
+        # call below it
+        #for key, val in expected.items():
+            #self.assertFloatEqualAbs(val, states[key], 130) #conservative?
+        expected = [val for key, val in expected_dict.items()]
+        observed = [states[key] for key, val in expected_dict.items()]
+        self.assertSimiliarFreqs(observed, expected)
+
         assert ('G','U') in states
         assert ('U','G') in states
             
