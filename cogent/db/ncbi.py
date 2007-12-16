@@ -431,13 +431,6 @@ def get_unique_lineages(query, db='protein'):
 
 def get_unique_taxa(query, db='protein'):
     """Gets the unique lineages directly from a query."""
-    #print 'QUERY:', query
-    #p_ids = get_primary_ids(query,db=db)
-    #print "P_IDS:", p_ids
-    #tax_ids = ids_to_taxon_ids(p_ids,db=db)
-    #print "TAX_IDS:", tax_ids
-    #names = taxon_ids_to_names(tax_ids)
-    #print "NAMES:", names
     return set(taxon_ids_to_names(ids_to_taxon_ids(get_primary_ids(query,db=db),db=db)))
 
 if __name__ == '__main__':
