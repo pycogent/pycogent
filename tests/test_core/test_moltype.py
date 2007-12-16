@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from cogent.core import moltype, sequence
-from cogent.core.moltype import AlphabetError, make_matches, make_pairs, \
+from cogent.core.moltype import AlphabetError, \
+    CoreObjectGroup, AlphabetGroup, make_matches, make_pairs, \
     array, MolType, RNA, DNA, PROTEIN, STANDARD_CODON,\
     IUPAC_RNA_chars, \
     IUPAC_RNA_ambiguities, IUPAC_RNA_ambiguities_complements, \
@@ -171,6 +172,39 @@ class make_pairs_tests(TestCase):
         ('W','W'):False,
         })
         self.assertEqual(p, self.pairs)
+
+class CoreObjectGroupTests(TestCase):
+    """Tests of the CoreObjectGroup class."""
+    
+    def test_init(self):
+        """CoreObjectGroup should init with basic list of objects."""
+        class o(object):
+            def __init__(self, s):
+                self.s = s
+        base = o('base')
+        c = CoreObjectGroup(base)
+        self.assertSameObj(c.Base, base)
+        self.assertSameObj(c.Degen, None)
+        self.assertSameObj(c.Base.Degen, None)
+
+        base, degen, gap, degengap = map(o, ['base','degen','gap','degengap'])
+        c = CoreObjectGroup(base, degen, gap, degengap)
+        self.assertSameObj(c.Base, base)
+        self.assertSameObj(c.Base.Degen, degen)
+        self.assertSameObj(c.Degen.Gapped, degengap)
+
+class AlphabetGroupTests(TestCase):
+    """Tests of the AlphabetGroup class."""
+
+    def test_init(self):
+        """AlphabetGroup should initialize successfully"""
+        chars = 'AB'
+        degens = {'C':'AB'}
+        g = AlphabetGroup(chars, degens)
+        self.assertEqual(''.join(g.Base), 'AB')
+        self.assertEqual(''.join(g.Degen), 'ABC')
+        self.assertEqual(''.join(g.Gapped), 'AB-')
+        self.assertEqual(''.join(g.DegenGapped), 'AB-C?')
 
 class MolTypeTests(TestCase):
     """Tests of the MolType class. Should support same API as old Alphabet."""

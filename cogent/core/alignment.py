@@ -1,3 +1,24 @@
+#!/usr/bin/env python
+"""Code for handling multiple sequence alignments. In particular:
+
+    - SequenceCollection handles both aligned and unaligned sequences.
+    - Alignment and its subclasses handle multiple sequence alignments, storing
+      the raw sequences and a gap map. Useful for very long alignments, e.g.
+      genomics data.
+    - DenseAlignment and its subclasses handle multiple sequence alignments as
+      arrays of characters. Especially useful for short alignments that contain
+      many sequences.
+
+    WARNING: The various alignment objects try to guess the input type from the
+    input, but this behavior has a few quirks. In particular, if the input is
+    a sequence of two-item sequences (e.g. a list of two-character strings), 
+    each sequence will be unpacked and the first item will be used as the
+    label, the second as the sequence. For example, Alignment(['AA','CC','AA'])
+    produces an alignment of three 1-character strings labeled A, C and A
+    respectively. The reason for this is that the common case is that you have
+    passed in a stream of two-item label, sequence pairs. However, this can
+    cause confusion when testing.
+"""
 from __future__ import division
 from annotation import Map, _Annotatable
 import cogent   #will use to get at cogent.parse.fasta.MinimalFastaParser,
@@ -9,12 +30,14 @@ from cogent.maths.stats.util import Freqs
 from cogent.format.fasta import fasta_from_alignment
 from cogent.format.phylip import phylip_from_alignment
 from cogent.format.nexus import nexus_from_alignment
+from cogent.parse.gff import GffParser, parse_attributes
 from numpy import nonzero, array, logical_or, logical_and, logical_not, \
     transpose, arange, zeros, ones, take, put, uint8
+from numpy.random import randint, permutation
 
 from cogent.util.dict2d import Dict2D
 
-import logging, random, md5
+import logging, md5
 LOG = logging.getLogger('cogent.data')
 
 from cogent.core.profile import Profile
@@ -248,6 +271,7 @@ class SequenceCollection(object):
         #if we're forcing the same data, skip the validation
         if force_same_data:
             self._force_same_data(data, Names)
+            curr_seqs = data
         #otherwise, figure out what we got and coerce it into the right type
         else:
             per_seq_names, curr_seqs, name_order = \
@@ -734,67 +758,79 @@ class SequenceCollection(object):
         return int_map, int_keys
     
     def getNumSeqs(self):
-        """Return the number of sequences."""
+        """Returns the number of sequences in the alignment."""
         return len(self.NamedSeqs)
     
     def copyAnnotations(self, unaligned):
-        """Alignment programs like ClustalW don't preserve annotations,
+        """Copies annotations from seqs in unaligned to self, matching by name. 
+        
+        Alignment programs like ClustalW don't preserve annotations,
         so this method is available to copy annotations off the unaligned
-        sequences.  'unaligned' should be a dictionary of Sequence instances"""
-        for (name, seq) in unaligned:
-            self.NamedSeqs[name].copyAnnotations(seq)
+        sequences.  
+        
+        unaligned should be a dictionary of Sequence instances.
+        
+        Ignores sequences that are not in self, so safe to use on larger dict
+        of seqs that are not in the current collection/alignment.
+        """
+        for name, seq in unaligned.items():
+            if name in self.NamedSeqs:
+                self.NamedSeqs[name].copyAnnotations(seq)
     
     def annotateFromGff(self, f):
-        from cogent.parse import gff
-        assert isinstance(self, _Annotatable)
-        for (seqname, source, feature, start, end, score,
-                strand, frame, attributes, comments) in gff.GffParser(f):
+        """Copies annotations from gff-format file to self.
+
+        Matches by name of sequence. This method expects a file handle, not
+        the name of a file.
+
+        Skips sequences in the file that are not in self.
+        """
+        for (name, source, feature, start, end, score,
+                strand, frame, attributes, comments) in GffParser(f):
+            if name in self.NamedSeqs:
+                self.NamedSeqs[name].addFeature(    feature, 
+                                    parse_attributes(attributes), 
+                                    [(start,end)])
+
+
+            '''
             self.NamedSeqs[seqname].data.addFeature(
                                 feature,
-                                gff.parse_attributes(attributes),
+                                parse_attributes(attributes),
                                 [(start, end)])
-    
-    def replaceSequences(self, seqs):
-        """A new alignment with the same shape but with data taken from seqs,
-        for aligning codons from protein alignment.  'seqs' can be an alignment
-        in which case its gaps will be ignored"""
-        # GAH shouldn't this be on the Alignment
-        seqs = seqs.NamedSeqs
+   ''' 
+    def replaceSeqs(self, seqs):
+        """Returns new alignment with same shape but with data taken from seqs.
+
+        Primary use is for aligning codons from protein alignment, or, more
+        generally, substituting in codons from a set of protein sequences (not
+        necessarily aligned). For this reason, it takes characters from seqs
+        three at a time rather than one at a time (i.e. 3 characters in seqs
+        are put in place of 1 character in self).
+
+        If seqs is an alignment, any gaps in it will be ignored.
+        """
+        if hasattr(seqs, 'NamedSeqs'):
+            seqs = seqs.NamedSeqs
+        else:
+            seqs = SequenceCollection(seqs).NamedSeqs
         new_seqs = []
         for label in self.Names:
             aligned = self.NamedSeqs[label]
             seq = seqs[label]
             if isinstance(seq, Aligned):
                 seq = seq.data
-            #assert len(seq) == len(aligned.data)*3, (len(seq), len(aligned.data))
             new_seqs.append((label, Aligned(aligned.map * 3, seq)))
         return self.__class__(new_seqs)
     
-    def sample(self, n=None, with_replacement=False, motif_length=1, random_series=None):
-        """returns a random sample of motifs from the alignment
-        Arguments:
-            - n: the number of motifs to sample from the alignment.
-              Default is alignment length
-            - with_replacement: boolean flag for determining if sampled
-              positions
-            - random_series: a random number generator with
-              .randint(min,max) .random() methods"""
-        population_size = len(self) // motif_length
-        if not n:
-            n = population_size
-        if not random_series:
-            random_series = random
-        if with_replacement:
-            locations = [random_series.randint(0, population_size-1)
-                    for samp in xrange(n)]
-        else:
-            assert n <= population_size, (n, population_size, motif_length)
-            locations = random_series.sample(xrange(population_size), n)
-        positions = [(loc*motif_length, (loc+1)*motif_length)
-                for loc in locations]
-        sample = Map(positions, parent_length=len(self))
-        return self.gappedByMap(sample, Info=self.Info)
-    
+    def getGappedSeq(self, seq_name, recode_gaps=False):
+        """Return a gapped Sequence object for the specified seqname.
+
+        Note: return type may depend on what data was loaded into the
+        SequenceCollection or Alignment.
+        """
+        return self.NamedSeqs[seq_name]
+  
     def __add__(self, other):
         """Concatenates sequence data for same names"""
         aligned = isinstance(self, Alignment)
@@ -808,9 +844,9 @@ class SequenceCollection(object):
                 raise ValueError("Right alignment doesn't have a '%s'" % name)
             if aligned:
                 new_seq = self.NamedSeqs[name].getGappedSeq() + \
-                          other.NamedSeqs[name].getGappedSeq()
+                          other.getGappedSeq(name)
             else:
-                new_seq = self.NamedSeqs[name] + other.NamedSeqs[name]
+                new_seq = self.NamedSeqs[name] + other.getGappedSeq(name)
             concatenated.append(new_seq)
         
         new = self.__class__(MolType=self.MolType,
@@ -826,7 +862,8 @@ class SequenceCollection(object):
     
     def addSeqs(self, other):
         """Adds sequences from other to self. Returns a new object.
-        other must be of same class as self.
+        
+        other must be of same class as self or coerceable to that class..
         """
         assert not isinstance(other, str), "Must provide a series of seqs "+\
                                             "or an alignment"
@@ -842,26 +879,16 @@ class SequenceCollection(object):
                     (seq.__class__, self_seq_class)
         return self.__class__(data=combined)
     
-    def slidingWindows(self, window, step):
-        """Generator function that yield new alignement objects
-        of a given length at a given interval.
-        Arguments:
-            - window: The length of the returned sequence
-            - step: The interval between the start of the returned
-              alignment objects"""
-        # this should only be on alignments, not collections
-        for pos in range(0, len(self)-window+1,step):
-            yield self[pos:pos+window]
-    
-    def writeToFile(self, filename = None, format = None):
-        """Write the alignment to a file.
+    def writeToFile(self, filename=None, format=None, **kwargs):
+        """Write the alignment to a file, preserving order of sequences.
         
         Arguments:
         - filename: name of the sequence file
         - format: format of the sequence file
         
         If format is None, will attempt to infer format from the filename
-        suffix."""
+        suffix.
+        """
         
         if filename is None:
             raise DataError('no filename specified')
@@ -871,12 +898,16 @@ class SequenceCollection(object):
         for seq_name in self.Names:
             align_dict[seq_name] = str(self.NamedSeqs[seq_name])
         
-        if format is None:
+        if format is None and '.' in filename:
             # allow extension to work if provided
             format = filename[filename.rfind(".")+1:]
-        save_to_filename(align_dict, filename, format)
+
+        if 'order' not in kwargs:
+            kwargs['order'] = self.Names
+        save_to_filename(align_dict, filename, format, **kwargs)
     
     def __len__(self):
+        """len of SequenceCollection returns length of longest sequence."""
         return self.SeqLen
     
     def getTranslation(self, gc=None, **kwargs):
@@ -888,10 +919,7 @@ class SequenceCollection(object):
         # do the translation
         try:
             for seqname in self.Names:
-                if aligned:
-                    seq = self.getGappedSeq(seqname)
-                else:
-                    seq = self.NamedSeqs[seqname]
+                seq = self.getGappedSeq(seqname)
                 pep = seq.getTranslation(gc)
                 translated.append((seqname, pep))
             return self.__class__(translated, **kwargs)
@@ -904,9 +932,10 @@ class SequenceCollection(object):
         return self.NamedSeqs[seqname]
     
     def todict(self):
-        """Returns the alignment as a dictionary of form
-        seqnames -> sequence strings"""
-        
+        """Returns the alignment as dict of names -> strings.
+
+        Note: returns strings, NOT Sequence objects.
+        """
         align_dict = {}
         
         for seq_name in self.Names:
@@ -915,6 +944,10 @@ class SequenceCollection(object):
         return align_dict
     
     def getPerSequenceAmbiguousPositions(self):
+        """Returns dict of seq:{position:char} for ambiguous chars.
+        
+        Used in likelihood calculations.
+        """
         result = {}
         for name in self.Names:
             result[name] = ambig = {}
@@ -936,7 +969,7 @@ class SequenceCollection(object):
         return SequenceCollection(MolType=self.MolType, data=new_seqs, **kwargs)
     
     def withModifiedTermini(self):
-        """Changes the termini to include the termini char instead of the gapmotif.
+        """Changes the termini to include termini char instead of gapmotif.
         
         Useful to correct the standard gap char output by most
         alignment programs when aligned sequences have different ends.
@@ -1244,8 +1277,12 @@ class Aligned(object):
     
     def annotateFromGff(self, f):
         self.data.annotate_from_gff(f)
+
+    def addFeature(self, *args, **kwargs):
+        self.data.addFeature(*args, **kwargs)
     
     def __str__(self):
+        """Returns string representation of aligned sequence, incl. gaps."""
         return str(self.getGappedSeq())
     
     def __cmp__(self, other):
@@ -1253,9 +1290,11 @@ class Aligned(object):
         return cmp(str(self), str(other))
     
     def __iter__(self):
+        """Iterates over sequence one motif (e.g. char) at a time, incl. gaps"""
         return self.data.gappedByMapMotifIter(self.map)
     
     def getGappedSeq(self, recode_gaps=False):
+        """Returns sequence as an object, including gaps."""
         return self.data.gappedByMap(self.map, recode_gaps)
     
     def __len__(self):
@@ -1480,7 +1519,51 @@ class AlignmentI(object):
         da = DenseAlignment(self)
         return da._get_freqs(index)
 
+    def sample(self, n=None, with_replacement=False, motif_length=1, \
+        randint=randint, permutation=permutation):
+        """Returns random sample of positions from self, e.g. to bootstrap.
 
+        Arguments:
+            - n: the number of positions to sample from the alignment.
+              Default is alignment length
+            - with_replacement: boolean flag for determining if sampled
+              positions
+            - random_series: a random number generator with
+              .randint(min,max) .random() methods
+              
+            
+        Notes: 
+            By default (resampling all positions without replacement), generates
+            a permutation of the positions of the alignment.
+
+            Setting with_replacement to True and otherwise leaving parameters
+            as defaults generates a standard bootstrap resampling of the 
+            alignment.
+            """
+        population_size = len(self) // motif_length
+        if not n:
+            n = population_size
+        if with_replacement:
+            locations = randint(0, population_size-1, n)
+        else:
+            assert n <= population_size, (n, population_size, motif_length)
+            locations = permutation(population_size)[:n]
+        positions = [(loc*motif_length, (loc+1)*motif_length)
+                for loc in locations]
+        sample = Map(positions, parent_length=len(self))
+        return self.gappedByMap(sample, Info=self.Info)
+
+    def slidingWindows(self, window, step):
+        """Generator yielding new Alignments of given length and interval.
+
+        Arguments:
+            - window: The length of each returned alignment.
+            - step: The interval between the start of the successive
+              alignment objects returned.
+        """
+        for pos in range(0, len(self)-window+1,step):
+            yield self[pos:pos+window]
+  
 def aln_from_array(a, array_type=None, Alphabet=None):
     """Alignment from array of pos x seq: no change, names are integers.
     
@@ -1906,7 +1989,45 @@ class DenseAlignment(AlignmentI, SequenceCollection):
         """
         return map(constructor, self.Positions)
 
+    def sample(self, n=None, with_replacement=False, motif_length=1, \
+        randint=randint, permutation=permutation):
+        """Returns random sample of positions from self, e.g. to bootstrap.
 
+        Arguments:
+            - n: the number of positions to sample from the alignment.
+              Default is alignment length
+            - with_replacement: boolean flag for determining if sampled
+              positions
+            - randint and permutation: functions for random integer in a
+              specified range, and permutation, respectively.
+              
+            
+        Notes: 
+            By default (resampling all positions without replacement), generates
+            a permutation of the positions of the alignment.
+
+            Setting with_replacement to True and otherwise leaving parameters
+            as defaults generates a standard bootstrap resampling of the 
+            alignment.
+            """
+        population_size = len(self) // motif_length
+        if not n:
+            n = population_size
+        if with_replacement:
+            locations = randint(0, population_size-1, n)
+        else:
+            assert n <= population_size, (n, population_size, motif_length)
+            locations = permutation(population_size)[:n]
+        #check if we need to convert coords for multi-width motifs
+        if motif_length > 1:
+            locations = (locations*motif_length).repeat(motif_length)
+            wrapped_locations =locations.reshape((n,motif_length))
+            wrapped_locations += arange(motif_length)
+        positions = take(self.ArrayPositions, locations, 0)
+        result = self.__class__(positions.T,force_same_data=True, \
+            Info=self.Info, Names=self.Names)
+        return result
+ 
 def aln_from_fasta_codons(seqs, array_type=None, Alphabet=None):
     """Codon alignment from FASTA-format string or lines.
     
@@ -1923,7 +2044,41 @@ def aln_from_fasta_codons(seqs, array_type=None, Alphabet=None):
     return aln_from_model_seqs([CodonSequenceGap(s, Label=l) for l, s \
         in cogent.parse.fasta.MinimalFastaParser(seqs)])
 
+    def xsample(self, n=None, with_replacement=False, motif_length=1, \
+        random_series=random):
+        """Returns random sample of positions from self, e.g. to bootstrap.
 
+        Arguments:
+            - n: the number of positions to sample from the alignment.
+              Default is alignment length
+            - with_replacement: boolean flag for determining if sampled
+              positions
+            - random_series: a random number generator with
+              .randint(min,max) .random() methods
+              
+            
+        Notes: 
+            By default (resampling all positions without replacement), generates
+            a permutation of the positions of the alignment.
+
+            Setting with_replacement to True and otherwise leaving parameters
+            as defaults generates a standard bootstrap resampling of the 
+            alignment.
+            """
+        population_size = len(self) // motif_length
+        if not n:
+            n = population_size
+        if with_replacement:
+            locations = [random_series.randint(0, population_size-1)
+                    for samp in xrange(n)]
+        else:
+            assert n <= population_size, (n, population_size, motif_length)
+            locations = random_series.sample(xrange(population_size), n)
+        positions = [(loc*motif_length, (loc+1)*motif_length)
+                for loc in locations]
+        sample = Map(positions, parent_length=len(self))
+        return self.gappedByMap(sample, Info=self.Info)
+ 
 class CodonDenseAlignment(DenseAlignment):
     """Stores alignment of gapped codons, no degenerate symbols."""
     InputHandlers = {   'array':aln_from_array,
@@ -2131,11 +2286,17 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         return self.gappedByMap(keep, Info=self.Info)
     
     def getSeq(self, seqname):
-        """Return a ungapped sequence object for the specified seqname.
+        """Return a ungapped Sequence object for the specified seqname.
+
+        Note: always returns Sequence object, not ModelSequence.
         """
         return self.NamedSeqs[seqname].data
     
     def getGappedSeq(self, seq_name, recode_gaps=False):
+        """Return a gapped Sequence object for the specified seqname.
+
+        Note: always returns Sequence object, not ModelSequence.
+        """
         return self.NamedSeqs[seq_name].getGappedSeq(recode_gaps)
     
     def iterPositions(self, pos_order=None):
