@@ -2,7 +2,7 @@
 """Tests of classes for dealing with trees and phylogeny.
 """
 from copy import copy, deepcopy
-from cogent.core.tree import TreeNode, PhyloNode
+from cogent.core.tree import TreeNode, PhyloNode, LoadTree
 from cogent.parse.tree import DndParser
 from cogent.maths.stats.test import correlation
 from cogent.util.unit_test import TestCase, main
@@ -16,6 +16,30 @@ __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
+
+
+class TreeTests(TestCase):
+    """Tests of top-level functions."""
+
+    def test_LoadTree(self):
+        """LoadTree should load a tree from a file or a string"""
+        t_str = '(a_a:10,(b_b:2,c_c:4):5);'
+        #NOTE: Tree quotes these labels because they have underscores in them.
+        result_str = "('a_a':10.0,('b_b':2.0,'c_c':4.0):5.0);"
+        t = LoadTree(treestring=t_str)
+        names = [i.Name for i in t.tips()]
+        self.assertEqual(names, ['a_a', 'b_b', 'c_c'])
+        self.assertEqual(str(t),result_str) 
+        t_str = '(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);'
+        #NOTE: Tree silently converts spaces to underscores (only for output),
+        #presumably for Newick compatibility.
+        result_str = "(a_a:10.0,(b_b:2.0,c_c:4.0):5.0);"
+        t = LoadTree(treestring=t_str, underscore_unmunge=True)
+        names = [i.Name for i in t.tips()]
+        self.assertEqual(names, ['a a', 'b b', 'c c'])
+        self.assertEqual(str(t),result_str) 
+
+
 
 def _new_child(old_node, constructor):
     """Returns new_node which has old_node as its parent."""

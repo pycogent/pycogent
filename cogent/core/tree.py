@@ -1,6 +1,7 @@
 #!/usr/bin/env python
-"""Classes for storing and manipulating a phylogenetic tree
-object. These tree's can be either strictly binary, or have polytomies
+"""Classes for storing and manipulating a phylogenetic tree.
+
+These trees can be either strictly binary, or have polytomies
 (multiple children to a parent node).
 
 Trees consist of Nodes (or branches) that connect two nodes. The Tree can
@@ -35,7 +36,7 @@ from operator import or_
 
 LOG = logging.getLogger('cogent.tree')
 
-__author__ = "Gavin Huttley and Peter Maxwell"
+__author__ = "Gavin Huttley, Peter Maxwell and Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Peter Maxwell", "Rob Knight",
                     "Andrew Butterfield", "Catherine Lozupone", "Micah Hamady",
@@ -57,7 +58,8 @@ def distance_from_r(m1, m2):
 class TreeError(Exception):
     pass
 
-def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
+def LoadTree(filename=None, treestring=None, tip_names=None, format=None, \
+    underscore_unmunge=False):
     
     """Constructor for tree.
     
@@ -65,6 +67,10 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
         - filename: a file containing a newick or xml formatted tree.
         - treestring: a newick or xml formatted tree string.
         - tip_names: a list of tip names.
+
+    Note: underscore_unmunging is turned off by default, although it is part
+    of the Newick format. Set underscore_unmunge to True to replace underscores
+    with spaces in all names read.
     """
     
     if filename:
@@ -81,7 +87,12 @@ def LoadTree(filename=None, treestring=None, tip_names=None, format=None):
         else:
             parser = cogent.parse.newick.parse_string
         tree_builder = TreeBuilder().createEdge
-        tree = parser(treestring, tree_builder)
+        #FIXME: More general strategy for underscore_unmunge
+        if parser is cogent.parse.newick.parse_string:
+            tree = parser(treestring, tree_builder, \
+                underscore_unmunge=underscore_unmunge)
+        else:
+            tree = parser(treestring, tree_builder)
         if not tree.NameLoaded:
             tree.Name = 'root'
     elif tip_names:
