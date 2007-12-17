@@ -15,6 +15,7 @@ from cogent.core.alignment import SequenceCollection, \
     DenseAlignment, Alignment, DataError
 
 from cogent.core.moltype import AB, DNA
+from cogent.parse.fasta import MinimalFastaParser
 from numpy import array, arange, transpose
 from tempfile import mktemp
 import re
@@ -310,6 +311,14 @@ class SequenceCollectionBaseTests(object):
         aln = self.Class(['ANS','CWC'],MolType=DNA)
         aln = self.Class(['A-A','CC-'],MolType=DNA)
         aln = self.Class(['A?A','CC-'],MolType=DNA)
+
+    def test_aln_from_fasta_parser(self):
+        """aln_from_fasta_parser should init from iterator"""
+        s = '>aa\nAC\n>bb\nAA\n'.splitlines()
+        p = MinimalFastaParser(s)
+        p = MinimalFastaParser(s)
+        aln = self.Class(p, MolType=DNA)
+        self.assertEqual(aln.NamedSeqs['aa'], 'AC')
 
     def test_SeqLen_get(self):
         """SequenceCollection SeqLen should return length of longest seq"""

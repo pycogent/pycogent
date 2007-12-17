@@ -20,6 +20,7 @@
     cause confusion when testing.
 """
 from __future__ import division
+from types import GeneratorType
 from annotation import Map, _Annotatable
 import cogent   #will use to get at cogent.parse.fasta.MinimalFastaParser,
                 #which is a circular import otherwise.
@@ -380,6 +381,9 @@ class SequenceCollection(object):
         """Internal function to figure out names, seqs, and name_order."""
         #figure out conversion function and whether it's an array
         if not conversion_f:
+            #read all the data in if we were passed a generator
+            if isinstance(data, GeneratorType):
+                data = list(data)
             input_type = self._guess_input_type(data)
             is_array = input_type in self.IsArray
             conversion_f = self.InputHandlers[input_type]
@@ -919,7 +923,10 @@ class SequenceCollection(object):
         # do the translation
         try:
             for seqname in self.Names:
-                seq = self.getGappedSeq(seqname)
+                if aligned:
+                    seq = self.getGappedSeq(seqname)
+                else:
+                    seq = self.NamedSeqs[seqname]
                 pep = seq.getTranslation(gc)
                 translated.append((seqname, pep))
             return self.__class__(translated, **kwargs)
