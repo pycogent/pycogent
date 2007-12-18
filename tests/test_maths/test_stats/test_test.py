@@ -35,9 +35,8 @@ class TestsTests(TestCase):
 
         expected_a = array([expected, expected, expected, expected, expected])
         a = array([[1,2,3,4,5],[5,1,2,3,4],[4,5,1,2,3],[3,4,5,1,2],[2,3,4,5,1]])
-        self.assertFloatEqual(std(a,axis=0), expected)
-        self.assertFloatEqual(std(a,axis=1), expected)
-        self.assertFloatEqual(std(a,axis=-1), expected)
+        self.assertFloatEqual(std(a,axis=0), expected_a)
+        self.assertFloatEqual(std(a,axis=1), expected_a)
         self.assertRaises(ValueError, std, a, 5)
 
     def test_median(self):
@@ -575,8 +574,8 @@ class CorrelationTests(TestCase):
         b = [1.5, 1.4, 1.2, 1.1]
         c = [15, 10, 5, 20]
         m = correlation_matrix([a,b,c])
-        self.assertFloatEqual(m[0], [1.0])
-        self.assertFloatEqual(m[1], [correlation(b,a)[0], 1.0])
+        self.assertFloatEqual(m[0,0], [1.0])
+        self.assertFloatEqual([m[1,0], m[1,1]], [correlation(b,a)[0], 1.0])
         self.assertFloatEqual(m[2], [correlation(c,a)[0], correlation(c,b)[0], \
             1.0])
 

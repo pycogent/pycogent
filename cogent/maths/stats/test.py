@@ -39,8 +39,26 @@ def std(x, axis=None):
     The result is unbiased, matching the result from MLab.std
     """
     x = asarray(x)
-    d = x - mean(x, axis)
-    return sqrt(sum(d**2, axis)/(len(x)-1))
+    
+    if axis is None:
+        d = x - mean(x)
+        return sqrt(sum(d**2)/(len(x)-1))
+    elif axis == 0:
+        result = []
+        for col in range(x.shape[1]):
+            vals = x[:,col]
+            d = vals - mean(vals)
+            result.append(sqrt(sum(d**2)/(len(x)-1)))
+        return result
+    elif axis == 1:
+        result = []
+        for row in range(x.shape[0]):
+            vals = x[row,:]
+            d = vals - mean(vals)
+            result.append(sqrt(sum(d**2)/(len(x)-1)))
+        return result
+    else:
+        raise ValueError, "axis out of bounds"
 
 def median(m, axis=None):
     """Returns medians by axis (similiar to numpy.mean)

@@ -171,6 +171,10 @@ class TestCase(orig_TestCase):
                 except (TypeError, ValueError):
                     pass
 
+        # shape mismatch can still get by...
+        if asarray(obs).shape != asarray(exp).shape:
+            self.fail("Wrong shape: Got %s, but expected %s" % (obs, exp))
+
         for observed, expected in zip(obs, exp):
             #try the cheap comparison first
             if observed == expected:
@@ -265,6 +269,10 @@ class TestCase(orig_TestCase):
         exp = numpy.asarray(exp, dtype='O')
         obs = numpy.ravel(obs)
         exp = numpy.ravel(exp)
+
+        if obs.shape != exp.shape:
+            self.fail("Shape mismatch. Got, %s but expected %s" % (obs, exp))
+
         for observed, expected in zip(obs, exp):
             if self._is_equal(observed, expected):
                 continue

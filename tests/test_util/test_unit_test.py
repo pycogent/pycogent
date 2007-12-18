@@ -278,6 +278,11 @@ class TestCaseTests(TestCase):
         self.assertEqual([[1,0], [0,1]],
                 [array([1,0]), array([0,1])])
         
+    def test_assertEqual_shape_mismatch(self):
+        """assertEqual should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertEqual, obs, exp)
 
     def test_assertFloatEqualAbs_equal(self):
         """assertFloatEqualAbs should not raise exception when values within eps"""
@@ -322,6 +327,12 @@ class TestCaseTests(TestCase):
                 "unit_test.assertFloatEqualAbs failed on input %s and %s" \
                 % (`first`, `second`)
 
+    def test_assertFloatEqualAbs_shape_mismatch(self):
+        """assertFloatEqualAbs should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqualAbs, obs, exp)
+
     def test_assertFloatEqualRel_equal(self):
         """assertFloatEqualRel should not raise exception when values within eps"""
         for first, second in self.within_1e6_rel_pairs:
@@ -365,6 +376,11 @@ class TestCaseTests(TestCase):
                 "unit_test.assertFloatEqualRel failed on input %s and %s" \
                 % (`first`, `second`)
 
+    def test_assertFloatEqualRel_shape_mismatch(self):
+        """assertFloatEqualRel should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqualRel, obs, exp)
 
     def test_assertFloatEqualList_equal(self):
         """assertFloatEqual should work on two lists of similar values"""
@@ -376,6 +392,12 @@ class TestCaseTests(TestCase):
         except:
             raise AssertionError, \
             "unit_test.assertFloatEqual failed on lists of similar values"
+
+    def test_assertFloatEqual_shape_mismatch(self):
+        """assertFloatEqual should raise when obs and exp shapes mismatch"""
+        obs = [1,2,3]
+        exp = [1,2,3,4]
+        self.assertRaises(AssertionError, self.assertFloatEqual, obs, exp)
 
     def test_assertFloatEqualList_unequal(self):
         """assertFloatEqual should fail on two lists of dissimilar values"""
