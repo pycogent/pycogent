@@ -31,9 +31,11 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+class IndexOrValueError(IndexError, ValueError): pass
+
 var = cov   #cov will calculate variance if called on a vector
 
-def std(x, axis=None):
+def std_(x, axis=None):
     """Returns standard deviations by axis (similiar to numpy.std)
 
     The result is unbiased, matching the result from MLab.std
@@ -59,6 +61,46 @@ def std(x, axis=None):
         return result
     else:
         raise ValueError, "axis out of bounds"
+    
+# tested only by std
+def var(x, axis=None):
+    """Returns unbiased standard deviations over given axis.
+
+    Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
+
+    x: a float ndarray or asarray(x) is a float ndarray.
+    axis=None: computed for the flattened array by default, or compute along an
+     integer axis.
+
+    Implementation Notes:
+    Change the SS calculation from:
+        SumSq(x-x_bar) to SumSq(x) - SqSum(x)/n
+        See p. 37 of Zar (1999) Biostatistical Analysis.
+    """
+    x = asarray(x)
+    #figure out sample size along the axis
+    if axis is None:
+        n = x.size
+    else:
+        n = x.shape[axis]
+    #compute the sum of squares from the mean(s)
+    sample_SS = sum(x**2, axis) - sum(x, axis)**2/n
+    return sample_SS / (n-1)
+
+def std(x, axis=None):
+    """computed unbiased standard deviations along given axis or flat array.
+
+    Similar with numpy.std, except that it is unbiased. (var = SS/n-1)
+
+    x: a float ndarray or asarray(x) is a float ndarray.
+    axis=None: computed for the flattened array by default, or compute along an
+      given integer axis.
+    """
+    try:
+        sample_variance = var(x, axis=axis)
+    except IndexError, e: #just to avoid breaking the old test code
+        raise IndexOrValueError(e)
+    return sqrt(sample_variance)
 
 def median(m, axis=None):
     """Returns medians by axis (similiar to numpy.mean)
