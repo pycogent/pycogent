@@ -497,6 +497,39 @@ f.close()
         self.assertEqual(f.readline(),'3')
         f.close()
 
+    def test_input_as_lines_from_list_single_entry(self):
+        """CLAppTester: _input_as_lines functions as expected w/ 1 element list
+        """
+        filename = self.app_no_params._input_as_lines(['line 1'])
+        self.assertEqual(filename[0],'/')
+        f = open(filename)
+        self.assertEqual(f.readline(),'line 1')
+        f.close()
+
+    def test_input_as_multiline_string_single_line(self):
+        """CLAppTester: _input_as_multiline_string functions w/ single line
+        """
+        # functions as expected with single line string
+        filename = self.app_no_params._input_as_multiline_string(\
+            'line 1')
+        self.assertEqual(filename[0],'/')
+        f = open(filename)
+        self.assertEqual(f.readline(),'line 1')
+        f.close()
+
+    def test_getTmpFilename_non_default(self):
+        """TmpFilename handles alt tmp_dir, prefix and suffix properly"""
+        app = CLAppTester()
+        obs = app.getTmpFilename()
+        self.assertTrue(obs.startswith('/tmp/tmp'))
+        self.assertTrue(obs.endswith('.txt'))
+        
+        obs = app.getTmpFilename(
+            tmp_dir="/blah",prefix="app_ctl_test",suffix='.test')
+        self.assertTrue(obs.startswith('/blah/app_ctl_test'))
+        self.assertTrue(obs.endswith('.test'))
+
+
     def test_input_as_path(self):
         """CLAppTester: _input_as_path casts data to FilePath"""
         actual = self.app_no_params._input_as_path('test.pdb')
