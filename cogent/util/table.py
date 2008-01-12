@@ -495,12 +495,12 @@ class Table(DictArray):
     def joined(self, other_table, columns_self=None, columns_other=None,
                 inner_join=True, **kwargs):
         """returns a new table containing the join of this table and
-        other_table. Default behaviour is the natural inner join. This
-        implementation only checks for equality in the specified columns; a
-        combined row is included in the output if all indices of the specified
-        columns match exactly. A combined row contains first the row of this
-        table, and then columns from the other_table that are not key columns
-        (i.e. not specified in columns_other). The order (of self, then other)
+        other_table. Default behaviour is the natural inner join. Checks for
+        equality in the specified columns (if provided) or all columns; a
+        combined row is included in the output if all indices match exactly. A
+        combined row contains first the row of this table, and then columns
+        from the other_table that are not key columns (i.e. not specified in
+        columns_other). The order (of self, then other)
         is preserved. The column headers of the output are made unique by
         replacing the headers of other_table with
         <other_table.Title>_<other_table.Header>.
