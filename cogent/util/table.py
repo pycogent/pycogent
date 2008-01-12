@@ -528,8 +528,8 @@ class Table(DictArray):
         columns_other = [columns_other,
                             [columns_other]][type(columns_other)==str]
         if not inner_join:
-            assert columns_self is None and columns_other is None, 'Cannot \
-                                specify column indices for an outer join'
+            assert columns_self is None and columns_other is None, "Cannot "\
+                                "specify column indices for an outer join"
             columns_self = []
             columns_other = []
         
@@ -546,8 +546,8 @@ class Table(DictArray):
             columns_self = columns_self or columns_other
             columns_other = columns_self or columns_other
         elif len(columns_self)!=len(columns_other):
-            raise RuntimeError("Error during table join: key columns have \
-                  different dimensions!")
+            raise RuntimeError("Error during table join: key columns have "\
+                  "different dimensions!")
         
         # create new 2d list for the output
         joined_table=[]
