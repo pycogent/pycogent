@@ -363,6 +363,32 @@ class Table(DictArray):
         kw.update(kwargs)
         return Table(header = self.Header, rows = sub_set, **kw)
     
+    def count(self, callback, columns=None, **kwargs):
+        """Returns number of rows for which the provided callback
+        function returns True when passed row data from columns. Row data
+        is a 1D list if more than one column, raw row[col] value otherwise.
+        
+        Arguments:
+            - columns: the columns whose values determine whether a row is to
+            be included.
+            - callback: Can be a function, which takes the sub-row delimited
+            by columns and returns True/False, or a string representing valid
+            python code to be evaluated."""
+        
+        if isinstance(columns, str):
+            columns = (columns,)
+        
+        if columns:
+            num_columns = len(columns)
+        else:
+            num_columns = None
+        
+        count = 0
+        for row in self:
+            if self._callback(callback, row, columns, num_columns):
+                count += 1
+        return count
+    
     def sorted(self, columns = None, reverse = None, **kwargs):
         """Returns a new table sorted according to columns order.
         

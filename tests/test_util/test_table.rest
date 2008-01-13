@@ -1191,6 +1191,17 @@ We finally establish the ``joined`` method works for mixtures of character and n
     >>> assert a.joined(b, ["index", "col3"],["index", "col3"]).getRawData()\
     ...         == a.joined(b,["index","col3"]).getRawData()
 
+Counting rows
+-------------
+
+We can count the number of rows for which a condition holds. This method uses the same arguments as ``filtered`` but returns an integer result only.
+
+    >>> print c.count("col_c2 == 2")
+    2
+    >>> print c.joined(d,inner_join=False).count("index==3 and D_index==5")
+    2
+
+
 Test Cleanup
 ------------
 
