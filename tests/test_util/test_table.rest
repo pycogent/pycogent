@@ -538,6 +538,13 @@ We can read in a delimited format using a custom reader, which we'll now import.
        edge.1         root  4.0000  1.0000  3.0000  6.0000
     ------------------------------------------------------
 
+We also test the reader function for a '\t' delimited format with missing data at the end.
+
+    >>> data = ['ab\tcd\t', 'ab\tcd\tef']
+    >>> tab_reader = SeparatorFormatParser(sep='\t')
+    >>> for line in tab_reader(data):
+    ...     assert len(line) == 3, line
+
 We can likewise specify a writer, using a custom field formatter and provide this to the ``Table`` directly for writing. We first illustrate how the writer works to generate output. We then use it to escape some text fields in quotes. In order to read that back in, we define a custom reader that strips these quotes off.
 
     >>> from cogent.format.table import FormatFields, SeparatorFormatWriter

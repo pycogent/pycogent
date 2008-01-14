@@ -43,7 +43,7 @@ def SeparatorFormatParser(with_header=True, converter = None, ignore = is_empty,
         for line in lines:
             if ignore(line):
                 continue
-            line = line.strip().split(sep)
+            line = line.strip('\n').split(sep)
             if strip_wspace:
                 line = [field.strip() for field in line]
             if with_header and not header:
