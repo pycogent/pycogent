@@ -3,6 +3,7 @@
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
+from cogent.core.tree import PhyloNode
 from random import choice
 from os import walk
 from os.path import isabs
@@ -10,7 +11,8 @@ from cogent.parse.tree import DndParser
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight"]
+__credits__ = ["Micah Hamady", "Catherine Lozupone", "Rob Knight", \
+               "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
@@ -335,4 +337,25 @@ def raxml_alignment(align_obj,
 
     return tree_node, parsimony_tree_node, log_likelihood, total_exec_time
 
+def build_tree_from_alignment(alignment, params):
+    """Run Raxml on an alignment object. Returns a parsimony tree"""
+    # generate temp filename for output    
+    params["-w"] = "/tmp/"    
+    params["-n"] = get_tmp_filename().split("/")[-1]    
+    ih = '_input_as_multiline_string'    
+    seqs, align_map = alignment.toPhylip()
 
+    raxml_app = Raxml(params=params,
+                      InputHandler=ih,
+                      WorkingDir=None,
+                      SuppressStderr=True,
+                      SuppressStdout=True)
+
+    raxml_result = raxml_app(seqs)
+
+    parsimony_tree = DndParser(raxml_result['ParsimonyTree'], 
+                               constructor=PhyloNode)
+    
+    raxml_result.cleanUp()
+
+    return parsimony_tree
