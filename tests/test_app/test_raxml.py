@@ -127,9 +127,11 @@ class RaxmlTests(GenericRaxml):
     def test_build_tree_from_alignment(self):
         """Builds a tree from an alignment"""
         params = {'-m':'GTRCAT'}
-        tree = build_tree_from_alignment(self.align1, params)
+        tree = build_tree_from_alignment(self.align1, False, params)
         self.assertTrue(isinstance(tree, PhyloNode))
         self.assertEqual(len(tree.tips()), 7)
+        self.assertRaises(NotImplementedError, build_tree_from_alignment, \
+                                               True, params)
    
 PHYLIP_FILE= """ 7 50
 Species001   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
