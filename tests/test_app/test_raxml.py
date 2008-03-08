@@ -11,7 +11,7 @@ from StringIO import StringIO
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Micah Hamady", "Rob Knight"]
+__credits__ = ["Micah Hamady", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
