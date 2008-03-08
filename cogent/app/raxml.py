@@ -337,13 +337,26 @@ def raxml_alignment(align_obj,
 
     return tree_node, parsimony_tree_node, log_likelihood, total_exec_time
 
-def build_tree_from_alignment(alignment, params):
-    """Run Raxml on an alignment object. Returns a parsimony tree"""
+def build_tree_from_alignment(aln, best_tree=False, params=None):
+    """Returns a tree from Alignment object aln.
+    
+    aln: an xxx.Alignment object, or data that can be used to build one.
+    
+    best_tree: if True (default:False), uses a slower but more accurate
+    algorithm to build the tree.
+    
+    params: dict of parameters to pass in to the RAxML app controller.
+    
+    The result will be an xxx.Alignment object, or None if tree fails.
+    """
+    if best_tree:
+        raise NotImplementedError
+
     # generate temp filename for output    
     params["-w"] = "/tmp/"    
     params["-n"] = get_tmp_filename().split("/")[-1]    
     ih = '_input_as_multiline_string'    
-    seqs, align_map = alignment.toPhylip()
+    seqs, align_map = aln.toPhylip()
 
     raxml_app = Raxml(params=params,
                       InputHandler=ih,
