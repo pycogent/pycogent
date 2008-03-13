@@ -7,11 +7,11 @@ from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
     alignUnalignedSeqs, alignTwoAlignments, addSeqsToAlignment,\
-    buildTreeFromAlignment
+    buildTreeFromAlignment, build_tree_from_alignment
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Sandra Smit"
@@ -33,6 +33,8 @@ class GeneralSetUp(TestCase):
         self.aln1 = ALIGN1
         self.dnd1 = DND1
         
+        self.multiline1 = '\n'.join(flatten(zip(self.labels1, self.seqs1)))
+       
         self.seqs2=['UAGGCUCUGAUAUAAUAGCUCUC','UAUCGCUUCGACGAUUCUCUGAUAGAGA',
             'UGACUACGCAU']
         self.labels2=['>a','>b','>c']
@@ -47,6 +49,68 @@ class GeneralSetUp(TestCase):
         
         self.temp_dir_space = "/tmp/clustalw test"
 
+        self.build_tree_seqs_short = """>clustal_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>clustal_test_seqs_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>clustal_test_seqs_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>clustal_test_seqs_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>clustal_test_seqs_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>clustal_test_seqs_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqs_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>clustal_test_seqs_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
+        self.build_tree_seqs_long = """>clustal_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>clustal_test_seqsaaaaaaaa_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>clustal_test_seqsaaaaaaaa_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>clustal_test_seqsaaaaaaaa_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>clustal_test_seqsaaaaaaaa_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>clustal_test_seqsaaaaaaaa_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>clustal_test_seqsaaaaaaaa_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
         try:
             mkdir('/tmp/ct')
         except OSError: #dir already exists
@@ -171,6 +235,26 @@ class ClustalwTests(GeneralSetUp):
         c = Clustalw(InputHandler='_input_as_seqs',WorkingDir='/tmp/ct')
         res = c(self.seqs1)
         #get info on input file name and change output accordingly
+        name = c.Parameters['-infile'].Value
+        out = self.stdout1.split('\n')
+        out[16] =\
+            'Guide tree        file created:   ['+name.rsplit(".")[0]+'.dnd]'
+        out[23] =\
+            'CLUSTAL-Alignment file created  ['+name.rsplit(".")[0]+'.aln]'
+        
+        self.assertEqual(cw_vers.sub("", res['StdOut'].read()),
+                            cw_vers.sub("", '\n'.join(out)))
+        self.assertEqual(res['StdErr'].read(),'')
+        self.assertEqual(cw_vers.sub("", res['Align'].read()),
+                            cw_vers.sub("", self.aln1))
+        self.assertEqual(res['Dendro'].read(),self.dnd1)
+        res.cleanUp()
+
+    def test_stdout_input_as_multiline_string(self):
+        """Clustalw input_as_multiline_string should function as expected"""
+        c = Clustalw(InputHandler='_input_as_multiline_string',\
+                     WorkingDir='/tmp/ct')
+        res = c(self.multiline1)
         name = c.Parameters['-infile'].Value
         out = self.stdout1.split('\n')
         out[16] =\
@@ -321,6 +405,23 @@ class clustalwTests(GeneralSetUp):
         
         res.cleanUp()
         pre_res.cleanUp()
+
+    def test_build_tree_from_alignment(self):
+        """Clustalw should return a tree built from the passed alignment"""
+        tree_short = build_tree_from_alignment(self.build_tree_seqs_short)
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+        
+        tree_long = build_tree_from_alignment(self.build_tree_seqs_long)
+        seq_names = []
+        for line in self.build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
+        
 
     def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
