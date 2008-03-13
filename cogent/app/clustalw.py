@@ -5,6 +5,9 @@ CLUSTALW
 from cogent.app.parameters import FlagParameter, ValuedParameter, \
     MixedParameter
 from cogent.app.util import CommandLineApplication, ResultPath
+from cogent.core.alignment import SequenceCollection
+from cogent.parse.tree import DndParser 
+from cogent.core.tree import PhyloNode
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -155,6 +158,16 @@ class Clustalw(CommandLineApplication):
         """
         return help_str
    
+    def _input_as_multiline_string(self, data):
+        """Writes data to tempfile and sets -infile parameter
+
+        data -- list of lines
+        """
+        if data:
+            self.Parameters['-infile']\
+                .on(super(Clustalw,self)._input_as_multiline_string(data))
+        return ''
+
     def _input_as_lines(self,data):
         """Writes data to tempfile and sets -infile parameter
 
@@ -370,7 +383,7 @@ def addSeqsToAlignment(aln1,seqs,outfile,WorkingDir=None,SuppressStderr=None,\
     aln1: string, name of file containing the alignment
     seqs: string, name of file containing the sequences that should be added
         to the alignment.
-    outfile: string, name of the output file (the new alignment)
+    opoutfile: string, name of the output file (the new alignment)
     """
     app = Clustalw({'-sequences':None,'-profile1':aln1,\
         '-profile2':seqs,'-outfile':outfile},SuppressStderr=\
@@ -416,7 +429,30 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
 
     The result will be an xxx.Alignment object, or None if tree fails.
     """
-    raise NotImplementedError
+    # Create instance of app controller, enable tree, disable alignment
+    app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
+                   WorkingDir='/tmp')
+    app.Parameters['-align'].off()
+    app.Parameters['-tree'].on()
+
+    # Setup mapping. Clustalw clips identifiers. We will need to remap them.
+    seq_collection = SequenceCollection(aln)
+    int_map, int_keys = seq_collection.getIntMap()
+    int_map = SequenceCollection(int_map)
+    
+    # Collect result
+    result = app(int_map.toFasta())
+
+    # Build tree
+    tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
+    for node in tree.tips():
+        node.Name = int_keys[node.Name]
+
+    # Clean up
+    result.cleanUp()
+    del(seq_collection, app, result, int_map, int_keys)
+
+    return tree
     
 def add_seqs_to_alignment(seqs, aln, params=None):
     """Returns an Alignment object from seqs and existing Alignment.
