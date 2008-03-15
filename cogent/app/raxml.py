@@ -388,8 +388,6 @@ def build_tree_from_alignment(aln, best_tree=False, params={}):
                       SuppressStderr=True,
                       SuppressStdout=True)
     
-    print raxml_app.BaseCommand
-    
     raxml_result = raxml_app(seqs)
 
     tree = DndParser(raxml_result['Bootstrap'], constructor=PhyloNode)
