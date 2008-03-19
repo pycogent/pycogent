@@ -1101,6 +1101,48 @@ class PhyloNodeTests(TestCase):
         c.Length = None   #need to test both leaf and internal node
         self.assertEqual(str(a), '(((d:1,e:4,(g:3)f:2)c)b:0,h)a;')
 
+    def test_maxTipTipDistance(self):
+        """maxTipTipDistance returns the max dist between any pair of tips"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        max_dist, tip_pair = tree.maxTipTipDistance()
+        self.assertEqual(max_dist, 10)
+        self.assertEqual(tip_pair, ('h', 'g'))
+
+    def test__find_midpoint_nodes(self):
+        """_find_midpoint_nodes should return nodes surrounding the midpoint"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        max_dist = 10
+        tip_pair = ('g', 'h')
+        result = tree._find_midpoint_nodes(max_dist, tip_pair)
+        self.assertEqual(result, (nodes['b'], nodes['c']))
+        tip_pair = ('h', 'g')
+        result = tree._find_midpoint_nodes(max_dist, tip_pair)
+        self.assertEqual(result, (nodes['f'], nodes['c']))
+
+    def test_rootAtMidpoint(self):
+        """rootAtMidpoint performs midpoint rooting"""
+        nodes, tree = self.TreeNode, self.TreeRoot
+        #works when the midpoint falls on an existing edge
+        tree1 = deepcopy(tree)
+        result = tree1.rootAtMidpoint()
+        self.assertEqual(str(result), \
+                '((g:3)f:2.0,(d:1,e:4,((h:2)b:0)c:3):0.0);')
+        #works when the midpoint falls between two existing edges
+        nodes['f'].Length = 1
+        nodes['c'].Length = 4
+        result = tree.rootAtMidpoint()
+        self.assertEqual(str(result), \
+                '((d:1,e:4,(g:3)f:1)c:1.0,((h:2)b:0):3.0);')
+
+    def test_rootAtMidpoint2(self):
+        """rootAtMidpoint works when midpoint is on both sides of root"""
+        #also checks whether it works if the midpoint is adjacent to a tip
+        nodes, tree = self.TreeNode, self.TreeRoot
+        nodes['h'].Length = 20
+        result = tree.rootAtMidpoint()
+        self.assertEqual(str(result), \
+            '(h:14.0,(((d:1,e:4,(g:3)f:2)c:3)b:0):6.0);')
+
 class Test_tip_tip_distances_I(object):
     """Abstract class for testing different implementations of tip_to_tip."""
     
