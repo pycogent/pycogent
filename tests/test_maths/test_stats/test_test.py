@@ -12,7 +12,7 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     chi_square_from_Dict2D, MonteCarloP, \
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
     regress_R2, permute_2d, mantel, kendall_correlation, std, median
-from numpy import array, reshape, arange, ones
+from numpy import array, reshape, arange, ones, testing, cov, sqrt
 from cogent.util.dict2d import Dict2D
 import math
 
@@ -39,6 +39,37 @@ class TestsTests(TestCase):
         self.assertFloatEqual(std(a,axis=1), expected_a)
         self.assertRaises(ValueError, std, a, 5)
 
+    def test_std_2d(self):
+        """Should produce from 2darray the same stdevs as scipy.stats.std"""
+        inp = array([[1,2,3],[4,5,6]])
+        exps = ( #tuple(scipy_std(inp, ax) for ax in [None, 0, 1])
+            1.8708286933869707,
+            array([ 2.12132034,  2.12132034,  2.12132034]),
+            array([ 1.,  1.]))
+        results = tuple(std(inp, ax) for ax in [None, 0, 1])
+        for obs, exp in zip(results, exps):
+            testing.assert_almost_equal(obs, exp)
+            
+    def test_std_3d(self):
+        """Should produce from 3darray the same std devs as scipy.stats.std"""
+        inp3d = array(#2,2,3
+                   [[[ 0,  2,  2],
+                     [ 3,  4,  5]],
+
+                    [[ 1,  9,  0],
+                     [ 9, 10, 1]]])
+        exp3d = (#for axis None, 0, 1, 2: calc from scipy.stats.std
+            3.63901418552,
+            array([[ 0.70710678,  4.94974747,  1.41421356],
+                [ 4.24264069,  4.24264069,  2.82842712]]),
+            array([[ 2.12132034,  1.41421356,  2.12132034],
+                [ 5.65685425,  0.70710678,  0.70710678]]),
+            array([[ 1.15470054,  1.        ],
+                [ 4.93288286,  4.93288286]]))
+        res = tuple(std(inp3d, ax) for ax in [None, 0, 1, 2])
+        for obs, exp in zip(res, exp3d):
+            testing.assert_almost_equal(obs, exp)
+            
     def test_median(self):
         """_median should work similarly to numpy.mean (in terms of axis)"""
         m = array([[1,2,3],[4,5,6],[7,8,9],[10,11,12]])
