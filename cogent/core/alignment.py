@@ -67,6 +67,20 @@ def assign_sequential_names(ignored, num_seqs, base_name='seq', start_at=0):
     """
     return ['%s_%s' % (base_name,i) for i in range(start_at,start_at+num_seqs)]
 
+class SeqLabeler(object):
+    """Allows flexible seq labeling in toFasta()."""
+
+    def __init__(self, aln, label_f=assign_sequential_names, **kwargs):
+        """Initializes a new seq labeler."""
+        self._aln = aln
+        self._label_f = label_f
+        self._map = dict(zip(aln.Names, label_f(len(aln.Names, **kwargs))))
+
+    def __call__(self, s):
+        """Returns seq name from seq id"""
+        return self._map[s.Name]
+    
+
 def coerce_to_string(s):
     """Converts an arbitrary sequence into a string."""
     if isinstance(s, str):  #if it's a string, OK as is
@@ -259,6 +273,10 @@ class SequenceCollection(object):
         
         name_conversion_f: if present, converts name into f(name).
         """
+        #read all the data in if we were passed a generator
+        if isinstance(data, GeneratorType):
+            data = list(data)
+        #set the Name
         self.Name = Name
         #figure out alphabet and moltype
         self.Alphabet, self.MolType = \
@@ -381,9 +399,6 @@ class SequenceCollection(object):
         """Internal function to figure out names, seqs, and name_order."""
         #figure out conversion function and whether it's an array
         if not conversion_f:
-            #read all the data in if we were passed a generator
-            if isinstance(data, GeneratorType):
-                data = list(data)
             input_type = self._guess_input_type(data)
             is_array = input_type in self.IsArray
             conversion_f = self.InputHandlers[input_type]

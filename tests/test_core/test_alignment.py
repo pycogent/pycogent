@@ -314,11 +314,21 @@ class SequenceCollectionBaseTests(object):
 
     def test_aln_from_fasta_parser(self):
         """aln_from_fasta_parser should init from iterator"""
-        s = '>aa\nAC\n>bb\nAA\n'.splitlines()
-        p = MinimalFastaParser(s)
+        s = '>aa\nAC\n>bb\nAA\n>c\nGG\n'.splitlines()
         p = MinimalFastaParser(s)
         aln = self.Class(p, MolType=DNA)
         self.assertEqual(aln.NamedSeqs['aa'], 'AC')
+        self.assertEqual(aln.toFasta(), '>aa\nAC\n>bb\nAA\n>c\nGG')
+        s2_ORIG = '>x\nCA\n>b\nAA\n>>xx\nGG'
+        s2 = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
+        d = DenseAlignment(MinimalFastaParser(s2.splitlines()))
+        self.assertEqual(d.toFasta(), aln.toFasta())
+
+    def test_aln_from_fasta(self):
+        """SequenceCollection should init from fasta-format string"""
+        s = '>aa\nAC\n>bb\nAA\n>c\nGG\n'
+        aln = self.Class(s)
+        self.assertEqual(aln.toFasta(), s.strip())
 
     def test_SeqLen_get(self):
         """SequenceCollection SeqLen should return length of longest seq"""
