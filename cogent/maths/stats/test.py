@@ -614,6 +614,7 @@ def regress_origin(x,y):
 
     returns slope, intercept as a tuple.
     """
+    x, y = array(x), array(y)
     return sum(x*y)/sum(x*x), 0
 
 def regress_R2(x, y):
