@@ -810,21 +810,23 @@ class RatesTests(TestCase):
 
     def test_fixNegsFmin(self):
         """Rates fixNegsFmin should fix negatives using fmin method"""
-        for i in range(1):
-            p = Probs.random(RnaPairs, 0.75)
-            q = p.toRates()
-            r = q.fixNegsFmin()
-            if not r.isValid():
-                assert abs(r._data.sum()) < 1e-5
+        q = Rates(array([[-0.28936029,  0.14543346, -0.02648614,  0.17041297],
+            [ 0.00949624, -0.31186005,  0.17313171,  0.1292321 ],
+            [ 0.10443209,  0.16134479, -0.30480186,  0.03902498],
+            [ 0.01611264,  0.12999161,  0.15558259, -0.30168684]]), DnaPairs)
+        r = q.fixNegsFmin()
+        assert not q.isValid()
+        assert r.isValid()
 
     def test_fixNegsConstrainedOpt(self):
-        """Rates fixNegsConstrainedOpt should fix negatives using fmin method"""
-        for i in range(1):
-            p = Probs.random(RnaPairs, 0.75)
-            q = p.toRates()
-            r = q.fixNegsConstrainedOpt()
-            if not r.isValid():
-                assert abs(r._data.sum()) < 1e-5
+        """Rates fixNegsConstrainedOpt should fix negatives w/ constrained opt"""
+        q = Rates(array([[-0.28936029,  0.14543346, -0.02648614,  0.17041297],
+            [ 0.00949624, -0.31186005,  0.17313171,  0.1292321 ],
+            [ 0.10443209,  0.16134479, -0.30480186,  0.03902498],
+            [ 0.01611264,  0.12999161,  0.15558259, -0.30168684]]), DnaPairs)
+        r = q.fixNegsFmin()
+        assert not q.isValid()
+        assert r.isValid()
 
     def test_fixNegsReflect(self):
         """Rates fixNegsReflect should reflect negatives across diagonal"""

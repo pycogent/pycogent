@@ -910,12 +910,12 @@ class Rates(PairMatrix):
                 raise Exception, 'Made invalid Q matrix: %s' % q
         return self.__class__(new_q, self.Alphabet)
 
-    def fixNegsConstrainedOpt(self, to_minimize=norm_diff):
+    def fixNegsConstrainedOpt(self, to_minimize=norm_diff, badness=1e6):
         """Uses constrained minimization to find approx q matrix.
 
-        WARNING: As of 2/4/05, it's necessary to change 'Int' to 'Int32'
-        on lines 160, 163, and 164 of scipy/optimize/lbfgsb.py (in
-        site-packages) to get this to work. 
+        to_minimize: metric for comparing orig result and new result.
+
+        badness: scale factor for penalizing negative off-diagonal values.
         """
         if not sum_neg_off_diags(self._data):
             return self
@@ -925,11 +925,13 @@ class Rates(PairMatrix):
             new_q = reshape(array(q), (4,3))
             new_q = with_diag(new_q, -sum(new_q, 1))
             p_new = expm(new_q)(t=1)
-            return to_minimize(ravel(p), ravel(p_new))
-        #note: this optimizer changes the array in-place
+            result = to_minimize(ravel(p), ravel(p_new))
+            if q.min() < 0:
+                result += -q.min() * badness
+            return result
         a = array(q)
         xmin = fmin(func=err_f, x0=a, disp=0)
-        r = reshape(a, (4,3))
+        r = reshape(xmin, (4,3))
         new_q = with_diag(r, -sum(r, 1))
         return self.__class__(new_q, self.Alphabet)
 
