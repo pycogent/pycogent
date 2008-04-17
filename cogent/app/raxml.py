@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Application controller for RAxML-V (v2.23) 
+"""Application controller for RAxML (v7.0.3).
+
+WARNING: Because of the use of the -x option, this version is no longer
+compatible with RAxML version VI.
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, FilePath
 from cogent.app.util import CommandLineApplication, ResultPath, get_tmp_filename
