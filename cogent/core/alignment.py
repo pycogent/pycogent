@@ -33,7 +33,7 @@ from cogent.format.phylip import phylip_from_alignment
 from cogent.format.nexus import nexus_from_alignment
 from cogent.parse.gff import GffParser, parse_attributes
 from numpy import nonzero, array, logical_or, logical_and, logical_not, \
-    transpose, arange, zeros, ones, take, put, uint8
+    transpose, arange, zeros, ones, take, put, uint8, ndarray
 from numpy.random import randint, permutation
 
 from cogent.util.dict2d import Dict2D
@@ -295,21 +295,9 @@ class SequenceCollection(object):
         else:
             per_seq_names, curr_seqs, name_order = \
                 self._names_seqs_order(conversion_f, data, Names, is_array, \
-                name_conversion_f, Alphabet=self.Alphabet)
+                name_conversion_f, remove_duplicate_names, \
+                Alphabet=self.Alphabet)
             self.Names = name_order
-            #check duplicate names if necessary
-            if not remove_duplicate_names:
-                if len(set(per_seq_names)) < len(per_seq_names):
-                    names = {}
-                    duplicate = {}
-                    for n in self.Names:
-                        if n in names:
-                            duplicate[n] = 1
-                        else:
-                            names[n] = 1
-                    raise ValueError, \
-                        "Some names were not unique. Duplicates are:\n" + \
-                        str(duplicate.keys())
             
             #will take only the seqs and names that are in name_order
             if per_seq_names != name_order:
@@ -331,6 +319,11 @@ class SequenceCollection(object):
         #so be careful which you use if writing methods that should work for
         #both SequenceCollections and Alignments.
         self._set_additional_attributes(curr_seqs)
+
+    def __str__(self):
+        """Returns self in FASTA-format, respecting name order."""
+        return ''.join(['>%s\n%s\n' % (name, self.getGappedSeq(name))
+                for name in self.Names])
     
     def _make_named_seqs(self, names, seqs):
         """Returns NamedSeqs: dict of name:seq."""
@@ -393,9 +386,29 @@ class SequenceCollection(object):
             except:
                 pass
         return curr_item
-    
+
+    def _strip_duplicates(self, names, seqs):
+        """Internal function to strip duplicates from list of names"""
+        if len(set(names)) == len(names):
+            return set(), names, seqs
+        #if we got here, there are duplicates
+        unique_names = {}
+        duplicates = {}
+        fixed_names = []
+        fixed_seqs = []
+        for n, s in zip(names, seqs):
+            if n in unique_names:
+                duplicates[n] = 1
+            else:
+                unique_names[n] = 1
+                fixed_names.append(n)
+                fixed_seqs.append(s)
+        if type(seqs) is ndarray:
+            fixed_seqs = array(fixed_seqs, seqs.dtype)
+        return duplicates, fixed_names, fixed_seqs
+
     def _names_seqs_order(self, conversion_f, data, Names, is_array, \
-            name_conversion_f, Alphabet=None):
+            name_conversion_f, remove_duplicate_names, Alphabet=None):
         """Internal function to figure out names, seqs, and name_order."""
         #figure out conversion function and whether it's an array
         if not conversion_f:
@@ -410,24 +423,42 @@ class SequenceCollection(object):
         if names and name_conversion_f:
             names = map(name_conversion_f, names)
         curr_seqs = self._coerce_seqs(seqs, is_array)
-        #if we couldn't get the names from the data, use the names that were
-        #passed in
-        if (names is None) or len(names) != len(set(names)):
-            #couldn't get names from seqs -- None, or duplicates
-            if Names is None:   #wasn't passed in any either, so assign
-                per_seq_names = self.DefaultNameFunction(len(curr_seqs))
-            else:   #assume names apply to the seqs in order
-                per_seq_names = Names
-            name_order = per_seq_names
-        else:               #got names from seqs, so assume they're OK
-            per_seq_names = names
-            if Names is None:   #wasn't passed in any names, so use the ones
-                                #from the seqs to define order
-                name_order = names
+
+        #if no names were passed in as Names, if we obtained them from
+        #the seqs we should use them, but otherwise we should use the
+        #default names
+        if Names is None:
+            if (names is None) or (None in names):
+                per_seq_names = name_order = \
+                    self.DefaultNameFunction(len(curr_seqs))
+            else:   #got names from seqs
+                per_seq_names = name_order = names
+        else:
+            #otherwise, names were passed in as Names: use this as the order
+            #if we got names from the sequences, but otherwise assign the
+            #names to successive sequences in order
+            if (names is None) or (None in names):
+                per_seq_names = name_order = Names
+            else: #got names from seqs, so assume name_order is in Names
                 per_seq_names = names
-            else:               #otherwise, take order from the passed Names
                 name_order = Names
-                per_seq_names = names
+        
+        #check for duplicate names
+        duplicates, fixed_names, fixed_seqs = \
+            self._strip_duplicates(per_seq_names, curr_seqs)
+        if duplicates:
+            if remove_duplicate_names:
+                per_seq_names, curr_seqs = fixed_names, fixed_seqs
+                #if name_order doesn't have the same names as per_seq_names,
+                #replace it with per_seq_names
+                if (set(name_order) != set(per_seq_names)) or\
+                    (len(name_order) != len(per_seq_names)):
+                    name_order = per_seq_names
+            else:
+                raise ValueError, \
+                "Some names were not unique. Duplicates are:\n" + \
+                str(sorted(duplicates.keys()))
+
         return per_seq_names, curr_seqs, name_order
     
     def _coerce_seqs(self, seqs, is_array):
@@ -2195,9 +2226,6 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
             tracks += seq.getTracks(policy.included(seqname=label))
         return tracks
     
-    def __str__(self):
-        return ''.join(['>%s\n%s\n' % (name, self.getGappedSeq(name))
-                for name in self.Names])
     
     def __repr__(self):
         seqs = []

@@ -283,6 +283,13 @@ class SequenceCollectionBaseTests(object):
         self.assertEqual(a.Names, ['x','b','c'])
         self.assertEqual(list(a.Seqs), ['XXX','BBB','CCC'])
 
+    def test_init_duplicate_keys(self):
+        """SequenceCollection init from (key, val) pairs should fail on dup. keys"""
+        seqs = [['x', 'XXX'], ['b','BBB'],['x','CCC'], ['d','DDD'], ['a','AAA']]
+        self.assertRaises(ValueError, self.Class, seqs)
+        aln = self.Class(seqs, remove_duplicate_names=True)
+        self.assertEqual(str(self.Class(seqs, remove_duplicate_names=True)),
+            '>x\nXXX\n>b\nBBB\n>d\nDDD\n>a\nAAA\n')
 
     def test_init_ordered(self):
         """SequenceCollection should iterate over seqs correctly even if ordered"""
