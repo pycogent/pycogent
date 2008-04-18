@@ -103,6 +103,7 @@ def suite():
         'test_parse.test_ebi',
         'test_parse.test_fasta',
         'test_parse.test_genbank',
+        'test_parse.test_gff',
         'test_parse.test_ilm',
         'test_parse.test_locuslink',
         'test_parse.test_mage',
