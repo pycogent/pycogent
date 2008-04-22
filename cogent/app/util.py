@@ -125,8 +125,6 @@ class CommandLineApplication(Application):
     _suppress_stderr = False
     _suppress_stdout = False
     _working_dir = None
-    TmpPrefix = FilePath('tmp')
-    TmpSuffix = FilePath('.txt')
 
     def __init__(self,params=None,InputHandler=None,SuppressStderr=None,\
         SuppressStdout=None,WorkingDir=None,TmpDir='/tmp', \
@@ -412,8 +410,21 @@ class CommandLineApplication(Application):
         return {}
 
 
-    def getTmpFilename(self, tmp_dir="/tmp",prefix=None,suffix=None):
-        # temp hack - change this to lookup and generate file in class
+    def getTmpFilename(self, tmp_dir="/tmp",prefix='tmp',suffix='.txt',\
+        include_class_id=False):
+        """ Return a temp filename
+
+            tmp_dir: path for temp file
+            prefix: text to append to start of file name
+            suffix: text to append to end of file name
+            include_class_id: if True, will append a class identifier (built
+             from the class name) to the filename following prefix. This is 
+             False by default b/c there is some string processing overhead
+             in getting the class name. This will probably be most useful for
+             testing: if temp files are being left behind by tests, you can
+             turn this on in here (temporarily) to find out which tests are
+             leaving the temp files.
+        """
 
         # check not none
         if not tmp_dir:
@@ -422,8 +433,16 @@ class CommandLineApplication(Application):
         elif not tmp_dir.endswith("/"):
             tmp_dir += "/"
 
-        prefix = prefix or self.TmpPrefix
-        suffix = suffix or self.TmpSuffix
+        if include_class_id:
+            # Append the classname to the prefix from the class name 
+            # so any problematic temp files can be associated with 
+            # the class that created them. This should be especially 
+            # useful for testing, but is turned off by default to
+            # avoid the string-parsing overhead.
+            class_id = str(self.__class__())
+            prefix = ''.join([prefix,\
+             class_id[class_id.rindex('.')+1:class_id.index(' ')]])
+        
         try:
             mkdir(tmp_dir)
         except OSError:

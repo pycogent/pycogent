@@ -61,7 +61,7 @@ class test_rnaview(TestCase):
     def test_file_pointers_no_extras(self):
         """RnaView: pointers created only for minimal files
         """
-        filename = get_tmp_filename(suffix='') + '.pdb'
+        filename = get_tmp_filename(prefix='tmpRnaViewTest',suffix='') + '.pdb'
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()
@@ -83,7 +83,7 @@ class test_rnaview(TestCase):
         """
         # need to make a fake pdb file with base pairs so that wrl file will be 
         # created. 
-        filename = get_tmp_filename(suffix='') + '.pdb'
+        filename = get_tmp_filename(prefix='tmpRnaViewTest',suffix='') + '.pdb'
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()
@@ -104,7 +104,7 @@ class test_rnaview(TestCase):
         """RNAview: spaces in input filenames are handled w/o error"""
         # need to make a fake pdb file with base pairs so that wrl file will be 
         # created. 
-        filename = get_tmp_filename(suffix='') + ' 5.pdb'
+        filename = get_tmp_filename(prefix='tmpRnaViewTest',suffix='') + ' 5.pdb'
         filename = str(filename)[1:-1]
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
@@ -124,12 +124,20 @@ class test_rnaview(TestCase):
         
         res.cleanUp()
         remove(filename)
+        ## These extra removes appear to be necessary due to a bug in RnaView.
+        ## When there is a space in a path there are extra files created, and
+        ## I can recreate this with rnaview as a stand-alone application. I'm
+        ## going to try to figure this out by contacting the rnaview authors.
+        remove(filename + '_patt.out')
+        remove(filename + '_patt_tmp.out')
+        remove(filename + '_sort.out')
+        remove(filename + '_tmp.pdb')
 
     def test_space_ok_in_input_directory(self):
         """RNAview: spaces in input directory are handled w/o error"""
         # need to make a fake pdb file with base pairs so that wrl file will be 
         # created. 
-        dir = get_tmp_filename(suffix='') + ' space5/'
+        dir = get_tmp_filename(prefix='tmpRnaViewTest',suffix='') + ' space5/'
         makedirs(dir)
         filename = dir + 'FAKE.pdb'
         filename = str(filename)[1:-1]
@@ -160,7 +168,7 @@ class test_rnaview(TestCase):
  
     def test_base_pairs_out(self):
         """RnaView: output sanity check """
-        filename = get_tmp_filename(suffix='')
+        filename = get_tmp_filename(prefix='tmpRnaViewTest',suffix='')
         f = open(filename,"w")
         f.writelines(self.fake_pdb_file)
         f.close()

@@ -462,6 +462,7 @@ f.close()
         self.assertEqual(f.readline(),'c\n')
         self.assertEqual(f.readline(),'d')
         f.close()
+        remove(filename)
 
     def test_input_as_lines_from_list(self):
         """CLAppTester: _input_as_lines functions as expected w/ data as list
@@ -473,6 +474,7 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
 
     def test_input_as_lines_from_list_w_newlines(self):
         """CLAppTester: _input_as_lines functions w/ data as list w/ newlines
@@ -484,6 +486,7 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
 
     def test_input_as_multiline_string(self):
         """CLAppTester: _input_as_multiline_string functions as expected
@@ -496,6 +499,7 @@ f.close()
         self.assertEqual(f.readline(),'None\n')
         self.assertEqual(f.readline(),'3')
         f.close()
+        remove(filename)
 
     def test_input_as_lines_from_list_single_entry(self):
         """CLAppTester: _input_as_lines functions as expected w/ 1 element list
@@ -505,6 +509,7 @@ f.close()
         f = open(filename)
         self.assertEqual(f.readline(),'line 1')
         f.close()
+        remove(filename)
 
     def test_input_as_multiline_string_single_line(self):
         """CLAppTester: _input_as_multiline_string functions w/ single line
@@ -516,18 +521,30 @@ f.close()
         f = open(filename)
         self.assertEqual(f.readline(),'line 1')
         f.close()
+        remove(filename)
 
     def test_getTmpFilename_non_default(self):
         """TmpFilename handles alt tmp_dir, prefix and suffix properly"""
         app = CLAppTester()
-        obs = app.getTmpFilename()
+        obs = app.getTmpFilename(include_class_id=False)
         self.assertTrue(obs.startswith('/tmp/tmp'))
         self.assertTrue(obs.endswith('.txt'))
         
-        obs = app.getTmpFilename(
-            tmp_dir="/blah",prefix="app_ctl_test",suffix='.test')
+        obs = app.getTmpFilename(tmp_dir="/blah",prefix="app_ctl_test",\
+            suffix='.test',include_class_id=False)
         self.assertTrue(obs.startswith('/blah/app_ctl_test'))
         self.assertTrue(obs.endswith('.test'))
+
+    def test_getTmpFilename_defaults_to_no_class_id(self):
+        """CLAppTester: getTmpFilename doesn't include class id by default 
+        """
+        # I want to explicitly test for this so people don't forget to 
+        # set the default to False if they change it for testing purposes
+        app = CLAppTester() 
+        self.assertFalse(app.getTmpFilename().\
+            startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(app.getTmpFilename(include_class_id=True).\
+            startswith('/tmp/tmpCLAppTester'))
 
 
     def test_input_as_path(self):
@@ -603,12 +620,37 @@ f.close()
     def test_getTmpFilename(self):
         """TmpFilename should return filename of correct length"""
         app = CLAppTester()
-        obs = app.getTmpFilename()
-        self.assertEqual(len(obs), len(app.TmpDir) + 1 + app.TmpNameLen \
-            + len(app.TmpPrefix) + len(app.TmpSuffix))
+        obs = app.getTmpFilename(include_class_id=True)
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(app.TmpDir) + len('/') + app.TmpNameLen \
+            + len('tmp') + len('CLAppTester') + len('.txt'))
         assert obs.startswith(app.TmpDir)
-        chars = set(obs[5:])
+        chars = set(obs[18:])
         assert len(chars) > 1
+        
+        obs = app.getTmpFilename(include_class_id=False)
+        # leaving the strings in this statement so it's clear where the expected
+        # length comes from
+        self.assertEqual(len(obs), len(app.TmpDir) + len('/') + app.TmpNameLen \
+            + len('tmp') + len('.txt'))
+        assert obs.startswith(app.TmpDir)
+
+    def test_getTmpFilename_prefix_suffix(self):
+        """TmpFilename should return filename with correct prefix and suffix"""
+        app = CLAppTester()
+        obs = app.getTmpFilename(prefix='blah',include_class_id=False)
+        self.assertTrue(obs.startswith('/tmp/blah'))
+        obs = app.getTmpFilename(suffix='.blah',include_class_id=False)
+        self.assertTrue(obs.endswith('.blah'))
+        # Prefix defaults to not include the class name
+        obs = app.getTmpFilename(include_class_id=False)
+        self.assertFalse(obs.startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(obs.endswith('.txt'))
+        # including class id functions correctly
+        obs = app.getTmpFilename(include_class_id=True)
+        self.assertTrue(obs.startswith('/tmp/tmpCLAppTester'))
+        self.assertTrue(obs.endswith('.txt'))
 
 class RemoveTests(TestCase):
     def test_remove(self):
@@ -627,6 +669,7 @@ class RemoveTests(TestCase):
         rmdir('/tmp/tmp space')
         rmdir('/tmp/test')
         rmdir('/tmp/test space')
+        rmdir('/tmp/tmp2')
        
 
 #=====================END OF TESTS===================================
