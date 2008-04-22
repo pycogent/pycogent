@@ -24,7 +24,8 @@ from random import choice
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Rob Knight", "Catherine Lozupone",
-                    "Sandra Smit", "Micah Hamady", "Daniel McDonald"]
+                    "Sandra Smit", "Micah Hamady", "Daniel McDonald",
+                    "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Rob Knight"
@@ -1047,3 +1048,110 @@ def kendall_correlation(x, y, alt="two sided", exact=None, warn=True):
         elif alt in lo:
             p = 1 - p/2
     return tau, p
+
+## Start functions for distance_matrix_permutation_test
+
+def distance_matrix_permutation_test(matrix, cells, cells2=None,\
+        f=t_two_sample, tails=None, n=1000, return_scores=False,\
+        is_symmetric=True):
+    """performs a monte carlo permutation test to determine if the 
+    values denoted in cells are significantly different than the rest
+    of the values in the matrix
+
+    matrix: a numpy array
+    cells: a list of indices of special cells to compare to the rest of the 
+        matrix
+    cells2: an optional list of indices to compare cells to. If set to None
+        (default), compares cells to the rest of the matrix
+    f: the statistical test used. Should take a "tails" parameter as input
+    tails: can be None(default), 'high', or 'low'. Input into f.
+    n: the number of replicates in the Monte Carlo simulations
+    is_symmetric: corrects if the matrix is symmetric. Need to only look at
+        one half otherwise the degrees of freedom value will be incorrect.
+    """
+    #if matrix is symmetric convert all indices to lower trangular
+    if is_symmetric:
+        cells = get_ltm_cells(cells)
+        if cells2:
+            cells2 = get_ltm_cells(cells2)
+    # pull out the special values
+    special_values, other_values = \
+        get_values_from_matrix(matrix, cells, cells2, is_symmetric)
+    # calc the stat and parameteric p-value for real data
+    stat, p = f(special_values, other_values, tails)
+    #calc for randomized matrices
+    count_more_extreme = 0
+    stats = []
+    indices = range(len(matrix))
+    for k in range(n):
+        # shuffle the order of indices, and use those to permute the matrix
+        permuted_matrix = permute_2d(matrix,permutation(indices))
+        special_values, other_values = \
+            get_values_from_matrix(permuted_matrix, cells,\
+            cells2, is_symmetric)
+        # calc the stat and p for a random subset (we don't do anything 
+        # with these p-values, we only use the current_stat value)
+        current_stat, current_p = f(special_values, other_values, tails)
+        stats.append(current_stat)
+        if tails == None:
+            if abs(current_stat) > abs(stat): count_more_extreme += 1
+        elif tails == 'low':
+            if current_stat < stat: count_more_extreme += 1
+        elif tails == 'high':
+            if current_stat > stat: count_more_extreme += 1
+
+    # pack up the parametric stat, parametric p, and empirical p; calc the
+    # the latter in the process
+    result = [stat, p, count_more_extreme/n]
+    # append the scores of the n tests if requested
+    if return_scores: result.append(stats)
+    return tuple(result)
+
+def get_values_from_matrix(matrix, cells, cells2=None, is_symmetric=True):
+    """get values from matrix positions in cells and cells2
+
+        matrix: the numpy array from which values should be taken
+        cells: indices of first set of requested values
+        cells2: indices of second set of requested values or None
+         if they should be randomly selected
+        is_symmetric: True if matrix is symmetric 
+
+    """
+
+    # pull cells values
+    cells_values = [matrix[i] for i in cells]
+    # pull cells2 values
+    if cells2:
+        cells2_values = [matrix[i] for i in cells2]
+    # or generate the indices and grab them if they
+    # weren't passed in
+    else:
+        cells2_values = []
+        for i, val_i in enumerate(matrix):
+            for j, val in enumerate(val_i):
+                if is_symmetric:
+                    if (i,j) not in cells and i > j:
+                        cells2_values.append(val)
+                else:
+                    if (i,j) not in cells:
+                        cells2_values.append(val)
+    return cells_values, cells2_values
+
+def get_ltm_cells(cells):
+    """converts matrix indices so all are below the diagonal
+
+        cells: list of indices into a 2D integer-indexable object
+         (typically a list or lists of array of arrays)
+    
+    """
+    new_cells = []
+    for cell in cells:
+        if cell[0] < cell[1]:
+            new_cells.append((cell[1], cell[0]))
+        elif cell[0] > cell[1]:
+            new_cells.append(cell)
+    #remove duplicates
+    new_cells = set(new_cells)
+    return list(new_cells)
+
+## End functions for distance_matrix_permutation_test

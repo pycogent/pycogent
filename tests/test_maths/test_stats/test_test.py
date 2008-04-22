@@ -11,7 +11,8 @@ from cogent.maths.stats.test import tail, G_2_by_2,G_fit, likelihoods,\
     f_value, f_two_sample, calc_contingency_expected, G_fit_from_Dict2D, \
     chi_square_from_Dict2D, MonteCarloP, \
     regress_residuals, safe_sum_p_log_p, G_ind, regress_origin, stdev_from_mean, \
-    regress_R2, permute_2d, mantel, kendall_correlation, std, median
+    regress_R2, permute_2d, mantel, kendall_correlation, std, median,\
+    get_values_from_matrix, get_ltm_cells, distance_matrix_permutation_test
 from numpy import array, reshape, arange, ones, testing, cov, sqrt
 from cogent.util.dict2d import Dict2D
 import math
@@ -808,7 +809,158 @@ class KendallTests(TestCase):
                      ["lt", 0.5711, 0.02564103],
                      ["ts", 0.9524, 0.02564103]]
         self.do_test(x,y,expecteds)
-    
+
+class TestDistMatrixPermutationTest(TestCase):
+    """Tests of distance_matrix_permutation_test"""
+
+    def setUp(self):
+        """sets up variables for testing"""
+        self.matrix = array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+        self.cells = [(0,1), (1,3)]
+        self.cells2 = [(0,2), (2,3)]
+
+    def test_get_ltm_cells(self):
+        "get_ltm_cells converts indices to be below the diagonal"
+        cells = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
+        result = get_ltm_cells(cells)
+        self.assertEqual(result, [(2, 0), (1, 0), (2, 1)])
+        cells = [(0,1),(0,2)]
+        result = get_ltm_cells(cells)
+        self.assertEqual(result, [(2, 0), (1, 0)])
+
+    def test_get_values_from_matrix(self):
+        """get_values_from_matrix returns the special and other values from matrix"""
+        matrix = self.matrix
+        cells = [(1,0),(0,1),(2,0),(2,1)]
+        #test that works for a symmetric matrix
+        cells_sym = get_ltm_cells(cells)
+        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
+         cells2=None, is_symmetric=True)
+        special_vals.sort()
+        other_vals.sort()
+        self.assertEqual(special_vals, [5,9,10])
+        self.assertEqual(other_vals, [13,14,15])
+
+        #test that work for a non symmetric matrix
+        special_vals, other_vals = get_values_from_matrix(matrix, cells,\
+         cells2=None, is_symmetric=False)
+        special_vals.sort()
+        other_vals.sort()
+        self.assertEqual(special_vals, [2,5,9,10])
+        self.assertEqual(other_vals, [1,3,4,6,7,8,11,12,13,14,15,16])
+
+        #test that works on a symmetric matrix when cells2 is defined
+        cells2 = [(3,0),(3,2),(0,3)]
+        cells2_sym = get_ltm_cells(cells2)
+        special_vals, other_vals = get_values_from_matrix(matrix, cells_sym,\
+         cells2=cells2_sym, is_symmetric=True)
+        special_vals.sort()
+        other_vals.sort()
+        self.assertEqual(special_vals, [5,9,10])
+        self.assertEqual(other_vals, [13,15])
+
+        #test that works when cells2 is defined and not symmetric
+        special_vals, other_vals = get_values_from_matrix(matrix, cells, cells2=cells2,\
+         is_symmetric=False)
+        special_vals.sort()
+        other_vals.sort()
+        self.assertEqual(special_vals, [2,5,9,10])
+        self.assertEqual(other_vals, [4,13,15])
+
+    def test_distance_matrix_permutation_test_non_symmetric(self):
+        """ evaluate empirical p-values for a non symmetric matrix 
+
+            To test the empirical p-values, we look at a simple 3x3 matrix 
+             b/c it is easy to see what t score every permutation will 
+             generate -- there's only 6 permutations. 
+             Running dist_matrix_test with n=540, we expect that each 
+             permutation will show up ~90 times, so we know how many 
+             times to expect to see more extreme t scores. We therefore 
+             know what the empirical p-values will be. (n=540 was chosen
+             empirically -- smaller values seem to lead to much more frequent
+             random failures.)
+
+
+        """
+        ## Need to update this code to use Daniel's test suite for 
+        ## handling tests with stochastic results. Right now I just check that 
+        ## empirical p-values are correct to one decimal place.
+
+
+        m = arange(9).reshape((3,3))
+        # looks at each possible permutation 300 times -- 
+        # compare first row to rest
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],n=540,is_symmetric=False)[2],0./6.,1)
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],n=540,tails='high',\
+            is_symmetric=False)[2],4./6.,1)
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],n=540,tails='low',\
+            is_symmetric=False)[2],0./6.,1)
+        # looks at each possible permutation 300 times --
+        # compare last row to rest
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(2,0),(2,1),(2,2)],n=540,is_symmetric=False)[2],0./6.,1)
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(2,0),(2,1),(2,2)],n=540,\
+            tails='high',is_symmetric=False)[2],0./6.,1)
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(2,0),(2,1),(2,2)],n=540,\
+            tails='low',is_symmetric=False)[2],4./6.,1)
+
+    def test_distance_matrix_permutation_test_symmetric(self):
+        """ evaluate empirical p-values for symmetric matrix
+
+            See test_distance_matrix_permutation_test_non_symmetric 
+            doc string for a description of how this test works. 
+
+        """
+        ## Need to update this code to use Daniel's test suite for 
+        ## handling tests with stochastic results. Right now I just check that 
+        ## empirical p-values are correct to one decimal place.
+        m = array([[0,1,3],[1,2,4],[3,4,5]])
+        # looks at each possible permutation 300 times -- 
+        # compare first row to rest
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],n=540)[2],2./6.,1)
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],\
+            n=540,tails='high')[2],0./6.,1)
+        self.assertEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],\
+            n=540,tails='high'),(1.1547005383792515, 0.77281447417149496,0./6.))
+        self.assertAlmostEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],\
+            n=540,tails='low')[2],4./6.,1)
+        ## The following lines are not part of the test code, but are useful in 
+        ## figuring out what t-scores all of the permutations will yield. 
+        #permutes = [[0, 1, 2], [0, 2, 1], [1, 0, 2],\
+        # [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+        #results = []
+        #for p in permutes:
+        #    p_m = permute_2d(m,p)
+        #    results.append(t_two_sample(\
+        #     [p_m[0,1],p_m[0,2]],[p_m[2,1]],tails='high'))
+        #print results
+
+    def test_distance_matrix_permutation_test_alt_stat(self):
+        def fake_stat_test(a,b,tails=None):
+            return 42.,42.
+        m = array([[0,1,3],[1,2,4],[3,4,5]])
+        self.assertEqual(distance_matrix_permutation_test(m,\
+            [(0,0),(0,1),(0,2)],n=5,f=fake_stat_test),(42.,42.,0.))
+
+    def test_distance_matrix_permutation_test_return_scores(self):
+        """ return_scores=True functions as expected """
+        # use alt statistical test to make results simple
+        def fake_stat_test(a,b,tails=None):
+            return 42.,42.
+        m = array([[0,1,3],[1,2,4],[3,4,5]])
+        self.assertEqual(distance_matrix_permutation_test(\
+            m,[(0,0),(0,1),(0,2)],\
+            n=5,f=fake_stat_test,return_scores=True),(42.,42.,0.,[42.]*5))
+ 
 
 #execute tests if called from command line
 if __name__ == '__main__':
