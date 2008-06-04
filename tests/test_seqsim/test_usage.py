@@ -8,7 +8,8 @@ from cogent.core.alphabet import Alphabet
 from cogent.core.sequence import ModelRnaSequence as RnaSequence, \
     ModelRnaCodonSequence
 from cogent.seqsim.usage import Usage, DnaUsage, RnaUsage, PairMatrix, Counts,\
-    Probs, Rates
+    Probs, Rates, goldman_q_dna_pair, goldman_q_rna_pair,\
+    goldman_q_dna_triple, goldman_q_rna_triple
 from numpy import average, asarray, sqrt, identity, diagonal, trace, \
                   array, sum
 from cogent.maths.matrix_logarithm import logm
@@ -857,6 +858,60 @@ class RatesTests(TestCase):
                    [ 2, -5,  3,  0],
                    [ 2,  0, -2,  0],
                    [ 1,  5,  0, -6]]))
+
+class GoldmanTests(TestCase):
+    def setUp(self):
+        pass
+
+    def test_goldman_q_dna_pair(self):
+        """Should return expected rate matrix"""
+        seq1 = "ATGCATGCATGC"
+        seq2 = "AAATTTGGGCCC"
+
+        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
+                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
+                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
+                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
+        observed = goldman_q_dna_pair(seq1, seq2)
+        self.assertEquals(observed, expected)
+
+    def test_goldman_q_rna_pair(self):
+        """Should return expected rate matrix"""
+        seq1 = "AUGCAUGCAUGC"
+        seq2 = "AAAUUUGGGCCC"
+
+        expected = array([[-(4/5.0), (2/5.0), (2/5.0), 0],
+                          [(2/5.0), -(4/5.0), 0, (2/5.0)],
+                          [(2/5.0), 0, -(4/5.0), (2/5.0)],
+                          [0, (2/5.0), (2/5.0), -(4/5.0)]])
+        observed = goldman_q_dna_pair(seq1, seq2)
+        self.assertEquals(observed, expected)
+
+    def test_goldman_q_dna_triple(self):
+        """Should return expected rate matrix"""
+        seq1 = "ATGCATGCATGC"
+        seq2 = "AAATTTGGGCCC"
+        outgroup = "AATTGGCCAATT"
+
+        expected = array([[-(1/2.0), (1/2.0), 0, 0],
+                          [0, 0, 0, 0],
+                          [(1/3.0), 0, -(1/3.0), 0],
+                          [0, 0, 0, 0]])
+        observed = goldman_q_dna_triple(seq1, seq2, outgroup)
+        self.assertFloatEqual(observed, expected)
+
+    def test_goldman_q_rna_triple(self):
+        """Should return expected rate matrix"""
+        seq1 = "AUGCAUGCAUGC"
+        seq2 = "AAAUUUGGGCCC"
+        outgroup = "AAUUGGCCAAUU"
+
+        expected = array([[-(1/2.0), (1/2.0), 0, 0],
+                          [0, 0, 0, 0],
+                          [(1/3.0), 0, -(1/3.0), 0],
+                          [0, 0, 0, 0]])
+        observed = goldman_q_rna_triple(seq1, seq2, outgroup)
+        self.assertFloatEqual(observed, expected)
 
 if __name__ == "__main__":
     main()
