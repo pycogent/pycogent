@@ -5,6 +5,7 @@ from cogent.app.parameters import FlagParameter, ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath, \
     get_tmp_filename, guess_input_handler
 from random import choice
+from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser
 from cogent.core.tree import PhyloNode
 from cogent.parse.fasta import MinimalFastaParser
@@ -12,7 +13,7 @@ from cogent.parse.fasta import MinimalFastaParser
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Micah Hamady", "Zongzhi Liu", "Mike Robeson",
-                    "Catherine Lozupone", "Rob Knight"]
+       "Catherine Lozupone", "Rob Knight", "Daniel McDonald","Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
@@ -141,7 +142,8 @@ class Muscle(CommandLineApplication):
         
         # Cluster sequences
         '-cluster':FlagParameter(Prefix='-',Name='cluster'),
-        '-neighborjoining':FlagParameter(Prefix='-',Name='neighborjoining'),
+        # neighborjoining is "unrecognized"
+        #'-neighborjoining':FlagParameter(Prefix='-',Name='neighborjoining'),
 
         
         # Write output in CLUSTALW format with the "CLUSTAL W (1.81)" header
@@ -497,6 +499,47 @@ def fastest_aln_seqs(seqs,
                  SuppressStdout=SuppressStdout)
     return muscle_res
 
+def align_unaligned_seqs(seqs, moltype, params=None):
+    """Returns an Alignment object from seqs.
+
+    seqs: SequenceCollection object, or data that can be used to build one.
+    
+    moltype: a MolType object.  DNA, RNA, or PROTEIN.
+
+    params: dict of parameters to pass in to the Clustal app controller.
+    
+    Result will be an Alignment object.
+    """
+    if not params:
+        params = {}
+    #create SequenceCollection object from seqs
+    seq_collection = SequenceCollection(seqs,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = seq_collection.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+    #get temporary filename
+    params.update({'-out':get_tmp_filename()})
+    #Create Muscle app.
+    app = Muscle(InputHandler='_input_as_multiline_string',\
+                 params=params)
+    #Get results using int_map as input to app
+    res = app(int_map.toFasta())
+    #Get alignment as dict out of results
+    alignment = dict(MinimalFastaParser(res['MuscleOut'].readlines()))
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        new_alignment[int_keys[k]]=v
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment,MolType=moltype)
+    #Clean up
+    res.cleanUp()
+    del(seq_collection,int_map,int_keys,app,res,alignment,params)
+
+    return new_alignment
+
+
 def align_and_build_tree(seqs, best_tree=False, params=None):
     """Returns an alignment and a tree from Sequences object seqs.
     
@@ -510,21 +553,41 @@ def align_and_build_tree(seqs, best_tree=False, params=None):
     The result will be a tuple containing a xxx.Alignment and an xxx.Tree
     object (or None for the alignment and/or tree if either fails).
     """
-    raise NotImplementedError
+    aln = align_unaligned_seqs(seqs, moltype=None, params=params)
+    tree = build_tree_from_alignment(aln, best_tree, params)
+    return {'Align':aln, 'Tree':tree}
 
 def build_tree_from_alignment(aln, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
     
     aln: an xxx.Alignment object, or data that can be used to build one.
     
-    best_tree: if True (default:False), uses a slower but more accurate
-    algorithm to build the tree.
+    best_tree: unsupported
     
     params: dict of parameters to pass in to the Muscle app controller.
     
     The result will be an xxx.Alignment object, or None if tree fails.
     """
-    raise NotImplementedError
+    # Create instance of app controller, enable tree, disable alignment
+    app = Muscle(InputHandler='_input_as_multiline_string', params=params, \
+                   WorkingDir='/tmp')
+
+    app.Parameters['-cluster'].on()
+    app.Parameters['-tree1'].on(get_tmp_filename(app.WorkingDir))
+
+    seq_collection = SequenceCollection(aln)
+
+    # Collect result
+    result = app(seq_collection.toFasta())
+
+    # Build tree
+    tree = DndParser(result['Tree1Out'].read(), constructor=PhyloNode)
+
+    # Clean up
+    result.cleanUp()
+    del(seq_collection, app, result)
+
+    return tree
 
 def add_seqs_to_alignment(seqs, aln, params=None):
     """Returns an Alignment object from seqs and existing Alignment.

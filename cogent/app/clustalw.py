@@ -5,13 +5,16 @@ CLUSTALW
 from cogent.app.parameters import FlagParameter, ValuedParameter, \
     MixedParameter
 from cogent.app.util import CommandLineApplication, ResultPath
-from cogent.core.alignment import SequenceCollection
+from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser 
+from cogent.parse.clustal import ClustalParser
 from cogent.core.tree import PhyloNode
+from numpy.random import randint
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Sandra Smit", "Micah Hamady", "Rob Knight"]
+__credits__ = ["Sandra Smit", "Micah Hamady", "Rob Knight", "Jeremy Widmann",
+                "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Sandra Smit"
@@ -415,7 +418,9 @@ def align_and_build_tree(seqs, best_tree=False, params=None):
     The result will be a tuple containing a xxx.Alignment and an xxx.Tree
     object (or None for the alignment and/or tree if either fails).
     """
-    raise NotImplementedError
+    aln = align_unaligned_seqs(seqs, moltype=None, params=params)
+    tree = build_tree_from_alignment(aln, best_tree, params)
+    return {'Align':aln,'Tree':tree}
     
 def build_tree_from_alignment(aln, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
@@ -433,7 +438,17 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
     app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
                    WorkingDir='/tmp')
     app.Parameters['-align'].off()
-    app.Parameters['-tree'].on()
+
+    # best_tree -> bootstrap
+    if best_tree:
+        if '-bootstrap' not in params:
+            app.Parameters['-bootstrap'].on(1000)
+        if '-seed' not in params:
+            app.Parameters['-seed'].on(randint(0,1000))
+        if '-bootlabels' not in params:
+            app.Parameters['-bootlabels'].on('nodes')
+    else:
+        app.Parameters['-tree'].on()
 
     # Setup mapping. Clustalw clips identifiers. We will need to remap them.
     seq_collection = SequenceCollection(aln)
@@ -454,6 +469,96 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
 
     return tree
     
+def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
+    """Returns a tree from Alignment object aln with bootstrap support values.
+
+    aln: an xxx.Alignment object, or data that can be used to build one.
+
+    seed: an interger, seed value to use
+    
+    num_trees: an integer, number of trees to bootstrap against
+
+    params: dict of parameters to pass in to the Clustal app controller.
+
+    The result will be an xxx.Alignment object, or None if tree fails.
+
+    If seed is not specifed in params, a random integer between 0-1000 is used.
+    """
+    # Create instance of controllor, enable bootstrap, disable alignment,tree
+    app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
+                   WorkingDir='/tmp')
+    app.Parameters['-align'].off()
+    app.Parameters['-tree'].off()
+
+    if app.Parameters['-bootstrap'].isOff():
+        if num_trees is None:
+            num_trees = 1000
+
+        app.Parameters['-bootstrap'].on(num_trees)
+
+    if app.Parameters['-seed'].isOff():
+        if seed is None:
+            seed = randint(0,1000)
+
+        app.Parameters['-seed'].on(seed)
+
+    if app.Parameters['-bootlabels'].isOff():
+        app.Parameters['-bootlabels'].on("node")
+
+    # Setup mapping. Clustalw clips identifiers. We will need to remap them.
+    seq_collection = SequenceCollection(aln)
+    int_map, int_keys = seq_collection.getIntMap()
+    int_map = SequenceCollection(int_map)
+    
+    # Collect result
+    result = app(int_map.toFasta())
+
+    # Build tree
+    tree = DndParser(result['Tree'].read(), constructor=PhyloNode)
+    for node in tree.tips():
+        node.Name = int_keys[node.Name]
+
+    # Clean up
+    result.cleanUp()
+    del(seq_collection, app, result, int_map, int_keys)
+
+    return tree
+
+def align_unaligned_seqs(seqs, moltype, params=None):
+    """Returns an Alignment object from seqs.
+
+    seqs: SequenceCollection object, or data that can be used to build one.
+    
+    moltype: a MolType object.  DNA, RNA, or PROTEIN.
+
+    params: dict of parameters to pass in to the Clustal app controller.
+    
+    Result will be an Alignment object.
+    """
+    #create SequenceCollection object from seqs
+    seq_collection = SequenceCollection(seqs,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    int_map, int_keys = seq_collection.getIntMap()
+    #Create SequenceCollection from int_map.
+    int_map = SequenceCollection(int_map,MolType=moltype)
+    #Create Clustalw app.
+    app = Clustalw(InputHandler='_input_as_multiline_string',params=params)
+    #Get results using int_map as input to app
+    res = app(int_map.toFasta())
+    #Get alignment as dict out of results
+    alignment = dict(ClustalParser(res['Align'].readlines()))
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        new_alignment[int_keys[k]]=v
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment,MolType=moltype)
+    #Clean up
+    res.cleanUp()
+    del(seq_collection,int_map,int_keys,app,res,alignment)
+
+    return new_alignment
+
 def add_seqs_to_alignment(seqs, aln, params=None):
     """Returns an Alignment object from seqs and existing Alignment.
 
