@@ -2,9 +2,12 @@
 
 from os import getcwd, remove, rmdir, mkdir, path
 import tempfile, shutil
+from cogent.core.moltype import RNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
-from cogent.app.muscle import Muscle, muscle_seqs, aln_tree_seqs
+from cogent.app.muscle import Muscle, muscle_seqs, aln_tree_seqs, \
+        align_unaligned_seqs, build_tree_from_alignment, \
+        align_and_build_tree
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -21,6 +24,7 @@ class GeneralSetUp(TestCase):
         """Muscle general setUp method for all tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
+        
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
 
@@ -48,10 +52,10 @@ class GeneralSetUp(TestCase):
     
 
 class MuscleTests(GeneralSetUp):
-    """Tests for the Clustalw application controller"""
+    """Tests for the Muscle application controller"""
 
     def test_base_command(self):
-        """Clustalw BaseCommand should return the correct BaseCommand"""
+        """Muscle BaseCommand should return the correct BaseCommand"""
         c = Muscle()
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "',getcwd(),'/"; ','muscle']))
@@ -64,7 +68,7 @@ class MuscleTests(GeneralSetUp):
             ' -in "seq.txt"']))
 
     def test_changing_working_dir(self):
-        """Clustalw BaseCommand should change according to WorkingDir"""
+        """Muscle BaseCommand should change according to WorkingDir"""
         c = Muscle(WorkingDir='/tmp/muscle_test')
         self.assertEqual(c.BaseCommand,\
             ''.join(['cd "','/tmp/muscle_test','/"; ','muscle']))
@@ -115,6 +119,108 @@ class MuscleTests(GeneralSetUp):
         shutil.rmtree(self.temp_dir)
         shutil.rmtree(self.temp_dir_spaces)
     
+    def test_align_unaligned_seqs(self):
+        """align_unaligned_seqs should work as expected"""
+        res = align_unaligned_seqs(self.seqs1, RNA)
+        self.assertEqual(res.toFasta(), align1)
+
+    def test_build_tree_from_alignment(self):
+        """Muscle should return a tree built from the passed alignment"""
+        tree_short = build_tree_from_alignment(build_tree_seqs_short)
+        num_seqs = flatten(build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+
+        tree_long = build_tree_from_alignment(build_tree_seqs_long)
+        seq_names = []
+        for line in build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
+
+    def test_align_and_build_tree(self):
+        """Should align and build a tree from a set of sequences"""
+        res = align_and_build_tree(self.seqs1)
+        self.assertEqual(res['Align'].toFasta(), align1)
+
+        tree = res['Tree']
+        seq_names = []
+        for line in align1.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree.tips():
+            if node.Name not in seq_names:
+                self.fail()
+
+align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
+
+build_tree_seqs_short = """>muscle_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>muscle_test_seqs_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>muscle_test_seqs_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>muscle_test_seqs_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>muscle_test_seqs_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>muscle_test_seqs_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>muscle_test_seqs_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>muscle_test_seqs_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>muscle_test_seqs_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>muscle_test_seqs_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
+
+build_tree_seqs_long = """>muscle_test_seqs_0
+AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
+AGCTTTAAATCATGCCAGTG
+>muscle_test_seqsaaaaaaaa_1
+GACCCACACGGTGGATGCAACAGATCCCATACACCGAGTTGGATGCTTAAGACGCATCGCGTGAGTTTTGCGTCAAGGCT
+TGCTTTCAATAATGCCAGTG
+>muscle_test_seqsaaaaaaaa_2
+AACCCCCACGGTGGCAGCAACACGTCACATACAACGGGTTGGATTCTAAAGACAAACCGCGTCAAAGTTGTGTCAGAACT
+TGCTTTGAATCATGCCAGTA
+>muscle_test_seqsaaaaaaaa_3
+AAACCCCACGGTAGCTGCAACACGTCCCATACCACGGGTAGGATGCTAAAGACACATCGGGTCTGTTTTGTGTCAGGGCT
+TGCTTTACATCATGCAAGTG
+>muscle_test_seqsaaaaaaaa_4
+AACCGCCACGGTGGGTACAACACGTCCACTACATCGGCTTGGAAGGTAAAGACACGTCGCGTCAGTATTGCGTCAGGGCT
+TGCTTTAAATCATGCCAGTG
+>muscle_test_seqsaaaaaaaa_5
+AACCCCCGCGGTAGGTGCAACACGTCCCATACAACGGGTTGGAAGGTTAAGACACAACGCGTTAATTTTGTGTCAGGGCA
+TGCTTTAAATCATGCCAGTT
+>muscle_test_seqsaaaaaaaa_6
+GACCCCCGCGGTGGCTGCAAGACGTCCCATACAACGGGTTGGATGCTTAAGACACATCGCAACAGTTTTGAGTCAGGGCT
+TACTTTAGATCATGCCGGTG
+>muscle_test_seqsaaaaaaaa_7
+AACCCCCACGGTGGCTACAAGACGTCCCATCCAACGGGTTGGATACTTAAGGCACATCACGTCAGTTTTGTGTCAGAGCT
+TGCTTTAAATCATGCCAGTG
+>muscle_test_seqsaaaaaaaa_8
+AACCCCCACGGTGGCTGCAACACGTGGCATACAACGGGTTGGATGCTTAAGACACATCGCCTCAGTTTTGTGTCAGGGCT
+TGCATTAAATCATGCCAGTG
+>muscle_test_seqsaaaaaaaa_9
+AAGCCCCACGGTGGCTGAAACACATCCCATACAACGGGTTGGATGCTTAAGACACATCGCATCAGTTTTATGTCAGGGGA
+TGCTTTAAATCCTGACAGCG
+"""
+
 
 if __name__ == '__main__':
     main()

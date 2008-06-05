@@ -3,11 +3,15 @@
 import re
 from os import getcwd, remove, rmdir, mkdir, path
 import shutil
+from cogent.core.alignment import Alignment
+from cogent.core.moltype import RNA
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
     alignUnalignedSeqs, alignTwoAlignments, addSeqsToAlignment,\
-    buildTreeFromAlignment, build_tree_from_alignment
+    buildTreeFromAlignment, build_tree_from_alignment, \
+    bootstrap_tree_from_alignment, align_unaligned_seqs, \
+    align_and_build_tree
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
@@ -27,6 +31,7 @@ class GeneralSetUp(TestCase):
         """Clustalw general setUp method for all tests"""
         self.seqs1 = ['ACUGCUAGCUAGUAGCGUACGUA','GCUACGUAGCUAC',
             'GCGGCUAUUAGAUCGUA']
+        self.aln1_fasta = ALIGN1_FASTA
         self.labels1 = ['>1','>2','>3']
         self.lines1 = flatten(zip(self.labels1,self.seqs1))
         self.stdout1 = STDOUT1
@@ -408,11 +413,13 @@ class clustalwTests(GeneralSetUp):
 
     def test_build_tree_from_alignment(self):
         """Clustalw should return a tree built from the passed alignment"""
-        tree_short = build_tree_from_alignment(self.build_tree_seqs_short)
+        tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
+                best_tree=False)
         num_seqs = flatten(self.build_tree_seqs_short).count('>')
         self.assertEqual(len(tree_short.tips()), num_seqs)
         
-        tree_long = build_tree_from_alignment(self.build_tree_seqs_long)
+        tree_long = build_tree_from_alignment(self.build_tree_seqs_long, \
+                best_tree=False)
         seq_names = []
         for line in self.build_tree_seqs_long.split('\n'):
             if line.startswith('>'):
@@ -421,7 +428,46 @@ class clustalwTests(GeneralSetUp):
         for node in tree_long.tips():
             if node.Name not in seq_names:
                 self.fail()
+
+        tree_short = build_tree_from_alignment(self.build_tree_seqs_short, \
+                best_tree=True, params={'-bootstrap':3})
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+     
+    def test_align_unaligned_seqs(self):
+        """Clustalw align_unaligned_seqs should work as expected"""
+        res = align_unaligned_seqs(self.seqs1, RNA)
+        self.assertEqual(res.toFasta(), self.aln1_fasta)
         
+    def test_bootstrap_tree_from_alignment(self):
+        """Clustalw should return a bootstrapped tree from the passed aln"""
+        tree_short = bootstrap_tree_from_alignment(self.build_tree_seqs_short)
+        num_seqs = flatten(self.build_tree_seqs_short).count('>')
+        self.assertEqual(len(tree_short.tips()), num_seqs)
+        
+        tree_long = bootstrap_tree_from_alignment(self.build_tree_seqs_long)
+        seq_names = []
+        for line in self.build_tree_seqs_long.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+
+        for node in tree_long.tips():
+            if node.Name not in seq_names:
+                self.fail()
+    def test_align_and_build_tree(self):
+        """Aligns and builds a tree for a set of sequences"""
+        res = align_and_build_tree(self.seqs1)
+        self.assertEqual(res['Align'].toFasta(), self.aln1_fasta)
+
+        tree = res['Tree']
+        seq_names = []
+        for line in self.aln1_fasta.split('\n'):
+            if line.startswith('>'):
+                seq_names.append(line[1:])
+                
+        for node in tree.tips():
+            if node.Name not in seq_names:
+                self.fail()
 
     def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
@@ -469,6 +515,8 @@ ALIGN1=\
 3               GCGGCUAUUAGAUCGUA------
                    ****                
 """
+
+ALIGN1_FASTA = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
 
 DND1=\
 """(
