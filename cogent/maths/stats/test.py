@@ -934,7 +934,7 @@ def ks_test(x, y=None, alt="two sided", exact = None, warn_for_ties = True):
     
     try: # if numpy arrays were input, the Pval can be an array of len==1
         Pval = Pval[0]
-    except TypeError:
+    except (TypeError, IndexError):
         pass
     return stat, Pval
 
