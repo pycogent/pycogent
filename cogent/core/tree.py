@@ -1522,6 +1522,54 @@ class PhyloNode(TreeNode):
             if dist > half_max_dist:
                 return node, node_path[index-1]
 
+    def setTipDistances(self):
+        """Sets distance from each node to the most distant tip."""
+        for node in self.traverse(self_before=False, self_after=True):
+            if node.Children:
+                node.TipDistance = max([c.Length + c.TipDistance for \
+                    c in node.Children])
+            else:
+                node.TipDistance = 0
+
+    def scaleBranchLengths(self, max_length=100, ultrametric=False):
+        """Scales BranchLengths in place to integers for ascii output.
+
+        Warning: tree might not be exactly the length you specify.
+
+        Set ultrametric=True if you want all the root-tip distances to end
+        up precisely the same.
+        """
+        self.setTipDistances()
+        orig_max = max([n.TipDistance for n in self.traverse()])
+        if not ultrametric: #easy case -- just scale and round
+            for node in self.traverse():
+                curr = node.Length
+                if curr is not None:
+                    node.ScaledBranchLength =  \
+                        max(1, int(round(1.0*curr/orig_max*max_length)))
+        else:   #hard case -- need to make sure they all line up at the end
+            for node in self.traverse(self_before=False, self_after=True):
+                if not node.Children:   #easy case: ignore tips
+                    node.DistanceUsed = 0
+                    continue
+                #if we get here, we know the node has children
+                #figure out what distance we want to set for this node
+                ideal_distance=int(round(node.TipDistance/orig_max*max_length))
+                min_distance = max([c.DistanceUsed for c in node.Children]) + 1
+                distance = max(min_distance, ideal_distance)
+                for c in node.Children:
+                    c.ScaledBranchLength = distance - c.DistanceUsed
+                node.DistanceUsed = distance
+        #reset the BranchLengths
+        for node in self.traverse(self_before=True, self_after=False):
+            if node.Length is not None:
+                node.Length = node.ScaledBranchLength
+            if hasattr(node, 'ScaledBranchLength'):
+                del node.ScaledBranchLength
+            if hasattr(node, 'DistanceUsed'):
+                del node.DistanceUsed
+            if hasattr(node, 'TipDistance'):
+                del node.TipDistance
 
 class TreeBuilder(object):
     # Some tree code which isn't needed once the tree is finished.
