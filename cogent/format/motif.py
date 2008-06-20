@@ -422,7 +422,7 @@ class HighlightMotifs(MotifFormatter):
         if motif_results:
             for motif in motif_results.Motifs:
                 for module in motif.Modules:
-                    mod_len = len(module.ConsensusSequence)
+                    mod_len = len(module)
                     mod_id = str(module.ID)
                     for skey, indexes in module.LocationDict.items():
                         if skey not in module_map:
@@ -664,8 +664,8 @@ class HighlightMotifsForm(MotifFormatter):
         return cells_tmpl % (module.ID, 
                              module.ID, 
                              self.ColorMap[module.ID], 
-                             #str(module),
-                             module.ConsensusSequence,
+                             str(module),
+                             #module.ConsensusSequence,
                              len(module.LocationDict),
                              _format_number(module.Pvalue))
 
@@ -1058,7 +1058,7 @@ for sticks_cmd in sticks_command_list:
             for motif in motif_results.Motifs:
                 for module in motif.Modules:
                     mod_id = str(module.ID)
-                    mod_len = len(module.ConsensusSequence)
+                    mod_len = len(str(module))
                     
                     if mod_id not in module_cons_map:
                         module_cons_map[mod_id] = self._make_conservation_consensus(module)
