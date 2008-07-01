@@ -795,14 +795,14 @@ class SequenceCollection(object):
         return nexus_from_alignment(self, seq_type,
                                 interleave_len=interleave_len)
     
-    def getIntMap(self):
+    def getIntMap(self,prefix='seq_'):
         """Returns a dict with names mapped to enumerates integer names.
             
-            - label is prefixed with 'seq_'
+            - prefix: prefix for sequence label. Default = 'seq_'
             - int_keys is a dict mapping int names to sorted original names.
         """
         get = self.NamedSeqs.__getitem__
-        int_keys = dict([('seq_'+str(i),k) for i,k in \
+        int_keys = dict([(prefix+str(i),k) for i,k in \
                 enumerate(sorted(self.NamedSeqs.keys()))])
         int_map = dict([(k, get(v)) for k,v in int_keys.items()])
         return int_map, int_keys
