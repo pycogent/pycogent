@@ -637,6 +637,13 @@ class SequenceCollectionBaseTests(object):
         im,ik = aln.getIntMap()
         self.assertEqual(ik,int_keys)
         self.assertEqual(im,int_map)
+        #test change prefix from default 'seq_'
+        prefix='seqn_'
+        int_keys = {'seqn_0':'seq1','seqn_1':'seq2','seqn_2':'seq3'}
+        int_map = {'seqn_0':'ACGU','seqn_1':'CGUA','seqn_2':'CCGU'}
+        im,ik = aln.getIntMap(prefix=prefix)
+        self.assertEqual(ik,int_keys)
+        self.assertEqual(im,int_map)
 
     def test_getNumSeqs(self):
         """SequenceCollection.getNumSeqs should count seqs."""
