@@ -7,11 +7,11 @@ from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
 from cogent.app.muscle import Muscle, muscle_seqs, aln_tree_seqs, \
         align_unaligned_seqs, build_tree_from_alignment, \
-        align_and_build_tree
+        align_and_build_tree, add_seqs_to_alignment, align_two_alignments
 
 __author__ = "Catherine Lozupone"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Catherine Lozupone", "Rob Knight"]
+__credits__ = ["Catherine Lozupone", "Rob Knight", "Daniel McDonald"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Catherine Lozupone"
@@ -155,7 +155,25 @@ class MuscleTests(GeneralSetUp):
             if node.Name not in seq_names:
                 self.fail()
 
+    def test_add_seqs_to_alignment(self):
+        """Should add sequences to an alignment"""
+        res = add_seqs_to_alignment(seqs_to_add, align1)
+        self.assertEqual(res.toFasta(), added_align_result)
+
+    def test_align_two_alignments(self):
+        """Should align to multiple sequence alignments"""
+        res = align_two_alignments(align1, aln_to_merge)
+        self.assertEqual(res.toFasta(), merged_align_result)
+
 align1 = ">seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
+
+# for use in test_add_seqs_to_alignment()
+seqs_to_add = ">foo\nGCUACGUAGCU\n>bar\nGCUACGUAGCC"
+added_align_result = ">bar\n---GCUACGUAGCC---------\n>foo\n---GCUACGUAGCU---------\n>seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
+
+# for use in test_align_two_alignments()
+aln_to_merge = ">foo\nGCUACGUAGCU\n>bar\n--UACGUAGCC"
+merged_align_result = ">bar\n-----UACGUAGCC---------\n>foo\n---GCUACGUAGCU---------\n>seq_0\nACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n---GCUACGUAGCUAC-------\n>seq_2\nGCGGCUAUUAGAUCGUA------"
 
 build_tree_seqs_short = """>muscle_test_seqs_0
 AACCCCCACGGTGGATGCCACACGCCCCATACAAAGGGTAGGATGCTTAAGACACATCGCGTCAGGTTTGTGTCAGGCCT
