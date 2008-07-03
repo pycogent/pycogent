@@ -14,7 +14,7 @@ from cogent.parse.fasta import MinimalFastaParser
 __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007, The Cogent Project"
 __credits__ = ["Micah Hamady", "Zongzhi Liu", "Mike Robeson",
-       "Catherine Lozupone", "Rob Knight", "Daniel McDonald","Jeremy Widmann"]
+       "Catherine Lozupone", "Rob Knight", "Daniel McDonald", "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Micah Hamady"
