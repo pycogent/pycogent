@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+"""Tests for application controller for ClustalW v1.83"""
 import re
 from os import getcwd, remove, rmdir, mkdir, path
 import shutil
@@ -11,11 +11,13 @@ from cogent.app.clustalw import Clustalw, alignUnalignedSeqsFromFile,\
     alignUnalignedSeqs, alignTwoAlignments, addSeqsToAlignment,\
     buildTreeFromAlignment, build_tree_from_alignment, \
     bootstrap_tree_from_alignment, align_unaligned_seqs, \
-    align_and_build_tree
+    align_and_build_tree, add_seqs_to_alignment, align_two_alignments
+from cogent.parse.fasta import MinimalFastaParser
 
 __author__ = "Sandra Smit"
 __copyright__ = "Copyright 2007, The Cogent Project"
-__credits__ = ["Sandra Smit", "Rob Knight", "Daniel McDonald"]
+__credits__ = ["Sandra Smit", "Rob Knight", "Daniel McDonald",\
+               "Jeremy Widmann"]
 __license__ = "GPL"
 __version__ = "1.0.1"
 __maintainer__ = "Sandra Smit"
@@ -468,7 +470,21 @@ class clustalwTests(GeneralSetUp):
         for node in tree.tips():
             if node.Name not in seq_names:
                 self.fail()
-
+    
+    def test_add_seqs_to_alignment(self):
+        """Clustalw add_seqs_to_alignment should work as expected."""
+        seq2 = dict(MinimalFastaParser(self.lines2))
+        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
+        res = add_seqs_to_alignment(seq2,align1,RNA)
+        self.assertEqual(res.toFasta(), SEQ_PROFILE_ALIGN)
+    
+    def test_align_two_alignments(self):
+        """Clustalw align_two_alignments should work as expected."""
+        align1 = dict(MinimalFastaParser(ALIGN1_FASTA.split('\n')))
+        align2 = dict(MinimalFastaParser(ALIGN2_FASTA.split('\n')))
+        res = align_two_alignments(align1,align2,RNA)
+        self.assertEqual(res.toFasta(), PROFILE_PROFILE_ALIGN)
+    
     def test_zzz_general_cleanUp(self):
         """Last test executed: cleans up all files initially created"""
         remove('/tmp/ct/seq1.txt')
@@ -535,6 +551,8 @@ c               ------------UGACUACGCAU---------
                               *     *           
 """
 
+ALIGN2_FASTA = ">a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\n----UAUCGCUUCGACGAUUCUCUGAUAGAGA\n>c\n------------UGACUACGCAU---------"
+
 DND2=\
 """(
 a:0.30435,
@@ -599,6 +617,10 @@ a:0.25531)
 3:0.29438,
 b:0.23503);
 """
+
+SEQ_PROFILE_ALIGN = """>a\n-------UAGGCUCUGAUAUAAUAGCUCUC---\n>b\nUAUCGCUUCGACGAUUCUCUGAUAGAGA-----\n>c\n-------------------UGACUACGCAU---\n>seq_0\n----------ACUGCUAGCUAGUAGCGUACGUA\n>seq_1\n-------------GCUACGUAGCUAC-------\n>seq_2\n----------GCGGCUAUUAGAUCGUA------"""
+
+PROFILE_PROFILE_ALIGN = """>a\nUAGGCUCUGAUAUAAUAGCUCUC---------\n>b\n----UAUCGCUUCGACGAUUCUCUGAUAGAGA\n>c\n------------UGACUACGCAU---------\n>seq_0\n---ACUGCUAGCUAGUAGCGUACGUA------\n>seq_1\n------GCUACGUAGCUAC-------------\n>seq_2\n---GCGGCUAUUAGAUCGUA------------"""
 
 if __name__ == '__main__':
     main()

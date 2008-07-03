@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Provides an application controller for the commandline version of:
-CLUSTALW
+CLUSTALW v1.83
 """
 from cogent.app.parameters import FlagParameter, ValuedParameter, \
-    MixedParameter
-from cogent.app.util import CommandLineApplication, ResultPath
+    MixedParameter, FilePath
+from cogent.app.util import CommandLineApplication, ResultPath, remove
 from cogent.core.alignment import SequenceCollection, Alignment
 from cogent.parse.tree import DndParser 
 from cogent.parse.clustal import ClustalParser
@@ -228,6 +228,21 @@ class Clustalw(CommandLineApplication):
         else:
             aln_filename = prefix + self._suffix()
         return aln_filename
+    
+    def _tempfile_as_multiline_string(self, data):
+        """Write a multiline string to a temp file and return the filename.
+
+            data: a multiline string to be written to a file.
+
+           * Note: the result will be the filename as a FilePath object 
+            (which is a string subclass).
+
+        """
+        filename = FilePath(self.getTmpFilename(self.TmpDir))
+        data_file = open(filename,'w')
+        data_file.write(data)
+        data_file.close()
+        return filename
 
     def _get_result_paths(self,data):
         """Return dict of {key: ResultPath}
@@ -408,14 +423,16 @@ def buildTreeFromAlignment(filename,WorkingDir=None,SuppressStderr=None):
 def align_and_build_tree(seqs, best_tree=False, params=None):
     """Returns an alignment and a tree from Sequences object seqs.
     
-    seqs: an xxx.Sequences object, or data that can be used to build one.
+    seqs: an cogent.core.alignment.SequenceCollection object, or data that can
+    be used to build one.
     
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
 
     params: dict of parameters to pass in to the Clustal app controller.
 
-    The result will be a tuple containing a xxx.Alignment and an xxx.Tree
+    The result will be a tuple containing a cogent.core.alignment.Alignment
+    and a cogent.core.tree.PhyloNode
     object (or None for the alignment and/or tree if either fails).
     """
     aln = align_unaligned_seqs(seqs, moltype=None, params=params)
@@ -425,14 +442,16 @@ def align_and_build_tree(seqs, best_tree=False, params=None):
 def build_tree_from_alignment(aln, best_tree=False, params=None):
     """Returns a tree from Alignment object aln.
 
-    aln: an xxx.Alignment object, or data that can be used to build one.
+    aln: an cogent.core.alignment.Alignment object, or data that can be used
+    to build one.
 
     best_tree: if True (default:False), uses a slower but more accurate
     algorithm to build the tree.
 
     params: dict of parameters to pass in to the Clustal app controller.
 
-    The result will be an xxx.Alignment object, or None if tree fails.
+    The result will be an cogent.core.tree.PhyloNode object, or None if tree
+    fails.
     """
     # Create instance of app controller, enable tree, disable alignment
     app = Clustalw(InputHandler='_input_as_multiline_string', params=params, \
@@ -472,7 +491,8 @@ def build_tree_from_alignment(aln, best_tree=False, params=None):
 def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
     """Returns a tree from Alignment object aln with bootstrap support values.
 
-    aln: an xxx.Alignment object, or data that can be used to build one.
+    aln: an cogent.core.alignment.Alignment object, or data that can be used
+    to build one.
 
     seed: an interger, seed value to use
     
@@ -480,7 +500,8 @@ def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
 
     params: dict of parameters to pass in to the Clustal app controller.
 
-    The result will be an xxx.Alignment object, or None if tree fails.
+    The result will be an cogent.core.tree.PhyloNode object, or None if tree
+    fails.
 
     If seed is not specifed in params, a random integer between 0-1000 is used.
     """
@@ -527,13 +548,14 @@ def bootstrap_tree_from_alignment(aln, seed=None, num_trees=None, params=None):
 def align_unaligned_seqs(seqs, moltype, params=None):
     """Returns an Alignment object from seqs.
 
-    seqs: SequenceCollection object, or data that can be used to build one.
+    seqs: cogent.core.alignment.SequenceCollection object, or data that can be
+    used to build one.
     
     moltype: a MolType object.  DNA, RNA, or PROTEIN.
 
     params: dict of parameters to pass in to the Clustal app controller.
     
-    Result will be an Alignment object.
+    Result will be a cogent.core.alignment.Alignment object.
     """
     #create SequenceCollection object from seqs
     seq_collection = SequenceCollection(seqs,MolType=moltype)
@@ -559,22 +581,128 @@ def align_unaligned_seqs(seqs, moltype, params=None):
 
     return new_alignment
 
-def add_seqs_to_alignment(seqs, aln, params=None):
+def add_seqs_to_alignment(seqs, aln, moltype, params=None):
     """Returns an Alignment object from seqs and existing Alignment.
 
-    seqs: an xxx.Sequences object, or data that can be used to build one.
+    seqs: a cogent.core.alignment.SequenceCollection object, or data that can
+    be used to build one.
 
-    aln: an xxx.Alignment object, or data that can be used to build one
+    aln: a cogent.core.alignment.Alignment object, or data that can be used to
+    build one
 
     params: dict of parameters to pass in to the Clustal app controller.
     """
-    raise NotImplementedError
+    #create SequenceCollection object from seqs
+    seq_collection = SequenceCollection(seqs,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    seq_int_map, seq_int_keys = seq_collection.getIntMap()
+    #Create SequenceCollection from int_map.
+    seq_int_map = SequenceCollection(seq_int_map,MolType=moltype)
+    
+    #create Alignment object from aln
+    aln = Alignment(aln,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    aln_int_map, aln_int_keys = aln.getIntMap(prefix='seqn_')
+    #Create SequenceCollection from int_map.
+    aln_int_map = Alignment(aln_int_map,MolType=moltype)
+    
+    #Update seq_int_keys with aln_int_keys
+    seq_int_keys.update(aln_int_keys)
+    
+    #Create Mafft app.
+    app = Clustalw(InputHandler='_input_as_multiline_string',\
+        params=params,
+        SuppressStderr=True)
+    app.Parameters['-align'].off()
+    app.Parameters['-infile'].off()
+    app.Parameters['-sequences'].on()
+    
+    #Add aln_int_map as profile1
+    app.Parameters['-profile1'].on(\
+        app._tempfile_as_multiline_string(aln_int_map.toFasta()))
+    
+    #Add seq_int_map as profile2
+    app.Parameters['-profile2'].on(\
+        app._tempfile_as_multiline_string(seq_int_map.toFasta()))
+    #Get results using int_map as input to app
+    res = app()
+    
+    #Get alignment as dict out of results
+    alignment = dict(ClustalParser(res['Align'].readlines()))
+    
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        new_alignment[seq_int_keys[k]]=v
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment,MolType=moltype)
+    #Clean up
+    res.cleanUp()
+    remove(app.Parameters['-profile1'].Value)
+    remove(app.Parameters['-profile2'].Value)
+    del(seq_collection,seq_int_map,seq_int_keys,\
+        aln,aln_int_map,aln_int_keys,app,res,alignment)
 
-def align_two_alignments(aln1, aln2, params=None):
+    return new_alignment
+
+def align_two_alignments(aln1, aln2, moltype, params=None):
     """Returns an Alignment object from two existing Alignments.
 
-    aln1, aln2: xxx.Alignment objects, or data that can be used to build them.
+    aln1, aln2: cogent.core.alignment.Alignment objects, or data that can be
+    used to build them.
 
     params: dict of parameters to pass in to the Clustal app controller.
     """
-    raise NotImplementedError
+    #create SequenceCollection object from seqs
+    aln1 = Alignment(aln1,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    aln1_int_map, aln1_int_keys = aln1.getIntMap()
+    #Create SequenceCollection from int_map.
+    aln1_int_map = Alignment(aln1_int_map,MolType=moltype)
+    
+    #create Alignment object from aln
+    aln2 = Alignment(aln2,MolType=moltype)
+    #Create mapping between abbreviated IDs and full IDs
+    aln2_int_map, aln2_int_keys = aln2.getIntMap(prefix='seqn_')
+    #Create SequenceCollection from int_map.
+    aln2_int_map = Alignment(aln2_int_map,MolType=moltype)
+    
+    #Update aln1_int_keys with aln2_int_keys
+    aln1_int_keys.update(aln2_int_keys)
+    
+    #Create Mafft app.
+    app = Clustalw(InputHandler='_input_as_multiline_string',\
+        params=params,
+        SuppressStderr=True)
+    app.Parameters['-align'].off()
+    app.Parameters['-infile'].off()
+    app.Parameters['-profile'].on()
+    
+    #Add aln_int_map as profile1
+    app.Parameters['-profile1'].on(\
+        app._tempfile_as_multiline_string(aln1_int_map.toFasta()))
+    
+    #Add seq_int_map as profile2
+    app.Parameters['-profile2'].on(\
+        app._tempfile_as_multiline_string(aln2_int_map.toFasta()))
+    #Get results using int_map as input to app
+    res = app()
+    
+    #Get alignment as dict out of results
+    alignment = dict(ClustalParser(res['Align'].readlines()))
+    
+    #Make new dict mapping original IDs
+    new_alignment = {}
+    for k,v in alignment.items():
+        new_alignment[aln1_int_keys[k]]=v
+    #Create an Alignment object from alignment dict
+    new_alignment = Alignment(new_alignment,MolType=moltype)
+    #Clean up
+    res.cleanUp()
+    remove(app.Parameters['-profile1'].Value)
+    remove(app.Parameters['-profile2'].Value)
+    del(aln1,aln1_int_map,aln1_int_keys,\
+        aln2,aln2_int_map,aln2_int_keys,app,res,alignment)
+
+    return new_alignment
+    

@@ -158,6 +158,7 @@ def suite():
     #Try importing modules for app controllers
     apps = [('blastall','test_blast'),
             ('carnac', 'test_carnac'),
+            ('clearcut','test_clearcut'),
             ('clustalw','test_clustalw'),
             ('cmfinder.pl', 'test_cmfinder'),
             ('comrna', 'test_comrna'),
@@ -168,6 +169,7 @@ def suite():
             ('foldalign', 'test_foldalign'),
             ('ilm', 'test_ilm'),
             ('knetfold.pl', 'test_knetfold'),
+            ('mafft', 'test_mafft'),
             ('mfold', 'test_mfold'),
             ('muscle', 'test_muscle'),
             ('Fold.out', 'test_nupack'),
