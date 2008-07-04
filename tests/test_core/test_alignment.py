@@ -666,7 +666,7 @@ class SequenceCollectionBaseTests(object):
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].label,'abc')
+        self.assertEqual(aln_seq_1.annotations[0].Name,'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
 
     def test_annotateFromGff(self):
@@ -685,7 +685,7 @@ class SequenceCollectionBaseTests(object):
         if not hasattr(aln_seq_2, 'annotations'):
             aln_seq_2 = aln_seq_2.data
         self.assertEqual(len(aln_seq_1.annotations), 1)
-        self.assertEqual(aln_seq_1.annotations[0].label,'abc')
+        self.assertEqual(aln_seq_1.annotations[0].Name,'abc')
         self.assertEqual(len(aln_seq_2.annotations), 0)
           
     def test_replaceSeqs(self):

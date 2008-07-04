@@ -2280,7 +2280,7 @@ class Alignment(_Annotatable, AlignmentI, SequenceCollection):
         for feature in self.getAnnotationsFromSequence(seq_name, *args):
             segment = self[feature.map.Start:feature.map.End]
             segment.Name = '%s "%s" %s to %s of %s' % (
-                feature.type, feature.label,
+                feature.type, feature.Name,
                 feature.map.Start, feature.map.End, self.Name or '')
             result.append(segment)
         return result
