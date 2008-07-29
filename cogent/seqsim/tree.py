@@ -644,9 +644,18 @@ def RandomTree(num_leaves, node_class=RangeNode):
 def CombTree(num_leaves, deepest_first=True, node_class=RangeNode):
     """Returns a comb node_class tree."""
     if deepest_first:
-        return node_class.fromBreakpoints(range(num_leaves-1))
+        branch_child = 1
     else:
-        return node_class.fromBreakpoints(range(num_leaves-1)[::-1])
+        branch_child = 0
+
+    root = node_class()
+    curr = root
+
+    for i in range(num_leaves-1):
+        curr.Children[:] = [node_class(Parent=curr),node_class(Parent=curr)]
+        curr = curr.Children[branch_child]
+
+    return root
 
 def StarTree(num_leaves, node_class=RangeNode):
     """Returns a star phylogeny, with all leaves equally connected to root."""
