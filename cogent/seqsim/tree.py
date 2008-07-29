@@ -635,7 +635,18 @@ def balanced_breakpoints(num_leaves):
 
 def BalancedTree(num_leaves, node_class=RangeNode):
     """Returns a balanced tree of node_class (num_leaves must be power of 2)."""
-    return node_class.fromBreakpoints(balanced_breakpoints(num_leaves))
+    #return node_class.fromBreakpoints(balanced_breakpoints(num_leaves))
+    root = node_class()
+    curr_children = [root]
+
+    while len(curr_children) < num_leaves:
+        tmp = []
+        for n in curr_children:
+            n.Children[:] = [node_class(Parent=n), node_class(Parent=n)]
+            tmp.extend(n.Children)
+        curr_children = tmp
+
+    return root
 
 def RandomTree(num_leaves, node_class=RangeNode):
     """Returns a random node_class tree using the breakpoint model."""
