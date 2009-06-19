@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2007-2009, The Cogent Project"
 __contributors__ = ["Peter Maxwell", "Gavin Huttley", "Matthew Wakefield", 
                     "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.3"
+__version__ = "1.3.0.dev"
 __maintainer__ = "Peter Maxwell"
 __email__ = "pm67nz@gmail.com"
 __status__ = "Production"
@@ -133,7 +133,7 @@ Version %s.
 """ % __version__
 
 setup(
-    name = "PyCogent",
+    name = "cogent",
     version = __version__,
     url = "http://sourceforge.net/projects/pycogent",
     author = "Gavin Huttley, Rob Knight",
