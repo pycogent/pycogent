@@ -2,6 +2,19 @@
 Changelog
 *********
 
+Cogent 1.3 - 1.3.1
+
+New Features
+------------
+
+Changes
+-------
+
+Bug Fixes
+---------
+
+* PyPi install now works, see work around on bug 2807542, 2807539
+
 Cogent 1.2 - 1.3
 ================
 
