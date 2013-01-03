@@ -7,7 +7,7 @@ from cogent.app.parameters import FlagParameter, ValuedParameter, \
 from cogent.app.util import CommandLineApplication, ResultPath, \
                             ApplicationError, get_tmp_filename
 from cogent import DNA, PROTEIN
-from cogent.core.genetic_code import DEFAULT as standard_code
+from cogent.core.genetic_code import GeneticCodes
 from cogent.parse.fasta import MinimalFastaParser
 from os import remove
 from os.path import isabs
@@ -338,8 +338,14 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
 
     Wraps assign_reads_to_database, setting database and query types. All
     parameters are set to default unless params is passed. A temporary
-    file must be written containing the translated sequences from the input
-    query fasta file because BLAT cannot do this automatically.
+    file must be written containing the six-frame translations of the sequences
+    from the input query fasta file because BLAT cannot do this automatically.
+
+    By default, the "Bacterial Nuclear and Plant Plastid" genetic code is used
+    (ID 11; see http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) for
+    translation; if an alternative genetic code is desired, pass 'genetic_code'
+    as a key in the params dict with the (integer) value of the genetic code to
+    use.
 
     query_fasta_fp: absolute path to the query fasta file containing DNA
                    sequences.
@@ -357,8 +363,8 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     defaults to blast9 and should be parsable by the PyCogent BLAST parsers.
     """
     my_params = {'-t': 'prot',
-              '-q': 'prot'
-             }
+                 '-q': 'prot'
+                }
 
     # make sure temp_dir specifies an absolute path
     if not isabs(temp_dir):
@@ -372,6 +378,14 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
                                 "when using " + \
                                 "assign_dna_reads_to_dna_database. " + \
                                 "Use assign_reads_to_database instead."
+
+    # if genetic code is passed, set it to that value; otherwise default to 11
+    if 'genetic_code' in params:
+        gc_id = params['genetic_code']
+        del params['genetic_code']
+    else:
+        gc_id = 11
+    genetic_code = GeneticCodes[gc_id]
     
     my_params.update(params)
 
@@ -384,7 +398,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
         seq_id = label.split()[0]
 
         s = DNA.makeSequence(sequence)
-        translations = standard_code.sixframes(s)
+        translations = genetic_code.sixframes(s)
         frames = [1,2,3,-1,-2,-3]
         translations = dict(zip(frames, translations))
 
@@ -394,7 +408,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
             tmp_out.write(entry)
 
     tmp_out.close()
-    result = assign_reads_to_database(tmp, database_fasta_fp, output_fp, \
+    result = assign_reads_to_database(tmp, database_fasta_fp, output_fp,
                                       params = my_params)
 
     remove(tmp)

@@ -91,15 +91,27 @@ class BlatTests(TestCase):
         Checks the output file against the expected result when known
         database and query files are used.
         """
-        exp = [l for l in assign_reads_prot_exp if not l.startswith('#')]
+        exp_gc11 = [l for l in assign_reads_prot_exp_gc11 if not l.startswith('#')]
+        exp_gc2 = [l for l in assign_reads_prot_exp_gc2 if not l.startswith('#')]
 
-        obs_lines = assign_dna_reads_to_protein_database(
+        # default genetic code
+        obs_lines_gc11 = assign_dna_reads_to_protein_database(
                     self.test_query_filename,
                     self.test_db_prot_filename,
                     self.testout).read().splitlines()
-        obs = [l for l in obs_lines if not l.startswith('#')]
-        
-        self.assertEqual(obs, exp)
+        obs_gc_11 = [l for l in obs_lines_gc11 if not l.startswith('#')]
+ 
+        # alternative genetic code (2)
+        obs_lines_gc2 = assign_dna_reads_to_protein_database(
+                    self.test_query_filename,
+                    self.test_db_prot_filename,
+                    self.testout,
+                    params = {'genetic_code':2}).read().splitlines()
+
+        obs_gc_2 = [l for l in obs_lines_gc2 if not l.startswith('#')]
+
+        self.assertEqual(obs_gc_11, exp_gc11)
+        self.assertEqual(obs_gc_2, exp_gc2)
 
     def test_get_base_command(self):
         """Tests that _get_base_command generates the proper command given
@@ -234,21 +246,21 @@ NZ_ACIZ01000148_643886127	NZ_GG739926_647533195	88.68	53	6	0	1321	1373	1315	1367
 NZ_ACIZ01000148_643886127	NZ_GG739926_647533195	77.27	22	5	0	990	1011	992	1013	8.5e+02	22.0
 """.splitlines()
 
-assign_reads_prot_exp = """# BLAT 34x13 [2009/02/26]
+assign_reads_prot_exp_gc11 = """# BLAT 34x13 [2009/02/26]
 # Query: NZ_GG770509_647533119_frame_1
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	96.83	441	0	7	1	427	1	441	8.9e-254	872.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_GG770509_647533119_frame_2
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG770509_647533119_frame_2	NZ_ACIZ01000148_643886127	85.37	41	6	0	359	399	362	402	8.0e-13	72.0
 NZ_GG770509_647533119_frame_2	NZ_ACIZ01000148_643886127	93.75	16	1	0	419	434	421	436	1.3e+00	31.0
 NZ_GG770509_647533119_frame_2	NZ_GG739926_647533195	75.86	29	7	0	320	348	326	354	2.9e-04	43.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_GG770509_647533119_frame_3
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	80.61	98	19	0	210	307	209	306	7.5e-39	158.0
 NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	66.33	98	33	0	43	140	44	141	8.9e-27	118.0
@@ -259,7 +271,7 @@ NZ_GG770509_647533119_frame_3	NZ_GG739926_647533195	68.89	45	14	0	238	282	241	28
 NZ_GG770509_647533119_frame_3	NZ_GG739926_647533195	72.09	43	12	0	63	105	66	108	3.0e-08	56.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_GG739926_647533195_frame_1
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG739926_647533195_frame_1	NZ_GG739926_647533195	100.00	437	0	0	1	437	1	437	1.7e-263	904.0
 NZ_GG739926_647533195_frame_1	NZ_ACIZ01000148_643886127	69.86	73	22	0	213	285	209	281	1.1e-20	98.0
@@ -270,19 +282,19 @@ NZ_GG739926_647533195_frame_1	NZ_ACIZ01000148_643886127	69.57	23	7	0	288	310	285
 NZ_GG739926_647533195_frame_1	NZ_ACIZ01000148_643886127	90.00	10	1	0	134	143	132	141	1.6e+04	18.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_GG739926_647533195_frame_2
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG739926_647533195_frame_2	NZ_GG770509_647533119	66.67	42	14	0	270	311	276	317	2.3e-08	57.0
 NZ_GG739926_647533195_frame_2	NZ_GG770509_647533119	60.00	45	18	0	185	229	188	232	3.9e-06	49.0
 NZ_GG739926_647533195_frame_2	NZ_GG770509_647533119	80.00	20	4	0	247	266	251	270	5.6e-01	32.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_GG739926_647533195_frame_3
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_GG739926_647533195_frame_3	NZ_ACIZ01000148_643886127	94.44	18	1	0	390	407	385	402	4.3e-03	39.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_ACIZ01000148_643886127_frame_1
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_ACIZ01000148_643886127_frame_1	NZ_ACIZ01000148_643886127	100.00	436	0	0	1	436	1	436	2.1e-261	897.0
 NZ_ACIZ01000148_643886127_frame_1	NZ_GG739926_647533195	78.57	42	9	0	240	281	244	285	4.0e-10	63.0
@@ -291,19 +303,94 @@ NZ_ACIZ01000148_643886127_frame_1	NZ_GG739926_647533195	76.92	26	6	0	3	28	2	27	9
 NZ_ACIZ01000148_643886127_frame_1	NZ_GG739926_647533195	69.57	23	7	0	285	307	288	310	4.8e+00	29.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_ACIZ01000148_643886127_frame_2
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_ACIZ01000148_643886127_frame_2	NZ_GG770509_647533119	79.59	147	26	2	182	324	189	335	2.3e-61	233.0
 NZ_ACIZ01000148_643886127_frame_2	NZ_GG770509_647533119	72.73	33	9	0	128	160	137	169	5.0e-04	42.0
 NZ_ACIZ01000148_643886127_frame_2	NZ_GG770509_647533119	90.91	22	2	0	70	91	76	97	2.5e-03	40.0
 # BLAT 34x13 [2009/02/26]
 # Query: NZ_ACIZ01000148_643886127_frame_3
-# Database: /home/adro2179/metagenome/test_db_prot.fasta
+# Database: /Users/adro2179/tests/prot.fasta
 # Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 NZ_ACIZ01000148_643886127_frame_3	NZ_GG770509_647533119	84.21	38	4	1	360	395	367	404	3.0e-08	56.0
 NZ_ACIZ01000148_643886127_frame_3	NZ_GG770509_647533119	94.12	17	1	0	413	429	425	441	1.6e+00	31.0
 NZ_ACIZ01000148_643886127_frame_3	NZ_GG739926_647533195	78.57	28	5	1	321	347	326	353	1.5e-03	41.0"""
-assign_reads_prot_exp = assign_reads_prot_exp.splitlines()
+assign_reads_prot_exp_gc11 = assign_reads_prot_exp_gc11.splitlines()
+
+assign_reads_prot_exp_gc2 = """# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG770509_647533119_frame_1
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	92.86	98	3	3	229	322	236	333	6.0e-45	178.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	89.66	87	4	4	1	83	1	86	1.6e-34	144.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	92.31	65	1	3	112	173	118	181	7.6e-24	108.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	97.87	47	0	1	329	374	341	387	5.6e-20	95.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	95.92	49	0	2	379	425	393	441	6.4e-19	92.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	88.46	26	3	0	180	205	186	211	6.6e-06	49.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	93.75	16	1	0	91	106	96	111	1.1e-01	35.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	100.00	9	0	0	218	226	224	232	3.1e+03	20.0
+NZ_GG770509_647533119_frame_1	NZ_GG770509_647533119	100.00	8	0	0	209	216	213	220	1.2e+04	18.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG770509_647533119_frame_2
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG770509_647533119_frame_2	NZ_ACIZ01000148_643886127	85.37	41	6	0	359	399	362	402	8.0e-13	72.0
+NZ_GG770509_647533119_frame_2	NZ_GG739926_647533195	75.86	29	7	0	319	347	326	354	2.9e-04	43.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG770509_647533119_frame_3
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	67.53	77	25	0	193	269	199	275	2.2e-21	100.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	95.00	20	1	0	279	298	287	306	4.3e-03	39.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	81.82	22	4	0	315	336	324	345	2.2e-02	37.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	77.78	18	4	0	84	101	89	106	2.1e+00	30.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	91.67	12	1	0	125	136	130	141	3.1e+03	20.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	61.11	18	7	0	105	122	108	125	4.1e+03	19.0
+NZ_GG770509_647533119_frame_3	NZ_ACIZ01000148_643886127	100.00	8	0	0	301	308	308	315	1.8e+05	14.0
+NZ_GG770509_647533119_frame_3	NZ_GG739926_647533195	64.10	39	14	0	231	269	241	279	4.4e-05	46.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG739926_647533195_frame_1
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG739926_647533195_frame_1	NZ_GG739926_647533195	95.00	280	10	4	151	426	158	437	3.1e-150	528.0
+NZ_GG739926_647533195_frame_1	NZ_GG739926_647533195	85.53	76	9	2	76	149	79	154	3.0e-27	120.0
+NZ_GG739926_647533195_frame_1	NZ_GG739926_647533195	97.22	36	0	1	1	36	1	35	1.8e-12	70.0
+NZ_GG739926_647533195_frame_1	NZ_GG739926_647533195	96.67	30	1	0	43	72	44	73	3.0e-08	56.0
+NZ_GG739926_647533195_frame_1	NZ_ACIZ01000148_643886127	73.81	42	11	0	236	277	240	281	2.3e-08	57.0
+NZ_GG739926_647533195_frame_1	NZ_ACIZ01000148_643886127	71.43	21	6	0	282	302	287	307	1.1e+01	28.0
+NZ_GG739926_647533195_frame_1	NZ_GG770509_647533119	78.57	28	6	0	2	29	3	30	8.5e-04	42.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG739926_647533195_frame_2
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG739926_647533195_frame_2	NZ_GG770509_647533119	67.86	28	9	0	268	295	276	303	9.7e-03	38.0
+NZ_GG739926_647533195_frame_2	NZ_GG770509_647533119	80.00	20	4	0	246	265	251	270	5.6e-01	32.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_GG739926_647533195_frame_3
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_GG739926_647533195_frame_3	NZ_ACIZ01000148_643886127	94.44	18	1	0	387	404	385	402	4.3e-03	39.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_ACIZ01000148_643886127_frame_1
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_ACIZ01000148_643886127_frame_1	NZ_ACIZ01000148_643886127	93.33	210	9	5	109	314	108	316	3.2e-103	372.0
+NZ_ACIZ01000148_643886127_frame_1	NZ_ACIZ01000148_643886127	97.35	113	0	2	320	429	324	436	1.7e-57	220.0
+NZ_ACIZ01000148_643886127_frame_1	NZ_ACIZ01000148_643886127	94.34	106	3	3	1	104	1	105	3.6e-51	199.0
+NZ_ACIZ01000148_643886127_frame_1	NZ_GG739926_647533195	67.61	71	22	1	239	308	244	314	4.2e-16	83.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_ACIZ01000148_643886127_frame_2
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_ACIZ01000148_643886127_frame_2	NZ_GG770509_647533119	89.13	46	3	1	246	289	258	303	9.4e-16	81.0
+NZ_ACIZ01000148_643886127_frame_2	NZ_GG770509_647533119	85.71	21	3	0	288	308	303	323	7.4e-03	39.0
+# BLAT 34x13 [2009/02/26]
+# Query: NZ_ACIZ01000148_643886127_frame_3
+# Database: /Users/adro2179/tests/prot.fasta
+# Fields: Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
+NZ_ACIZ01000148_643886127_frame_3	NZ_GG739926_647533195	78.57	28	6	0	318	345	326	353	1.3e-04	44.0
+NZ_ACIZ01000148_643886127_frame_3	NZ_GG770509_647533119	89.47	19	2	0	380	398	393	411	2.2e-02	37.0"""
+assign_reads_prot_exp_gc2 = assign_reads_prot_exp_gc2.splitlines()
 
 test_db_prot = """>NZ_GG770509_647533119
 YLEFDPGSERTLAAGLTHASRASGRRVSNAWERTICYGITQGNLCYRMetWKVGKSARVGLASWWGKGSPRRRSIAGLRGSATLGLRHGPDSYGRQQWGILDNGRKPDPAMetPRERPGCKALSPVKMetTVTGEEAPANFVPAAAVIRRGLALFGFTGRKAHVGGLLSQGNPGAQPRNCLYWKSVWRVEFRVRNSIFGGTPVAKAAHWTNRGAKAWGANRIRYPGSPRRKRMetLAVGASVAQLTHTFRLGSAVARLKLKGIDGGPHKRWSMetWFNSKQRAEPYQPLTSTGAAWLSSARVVRCWVKSRNERNPRPLPAWALGDCRAGGRWGRQVLMetALTGWATHVLQWWSVGSEHASVSSPPSQFGCTLQLECRSWNRSRISMetPRIRSRALYTPPVTPWELVLPEGACAGDHGRVSDWGEVVTRPGNLRLDHLLS
