@@ -341,11 +341,10 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     file must be written containing the six-frame translations of the sequences
     from the input query fasta file because BLAT cannot do this automatically.
 
-    By default, the "Bacterial Nuclear and Plant Plastid" genetic code is used
-    (ID 11; see http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) for
-    translation; if an alternative genetic code is desired, pass 'genetic_code'
-    as a key in the params dict with the (integer) value of the genetic code to
-    use.
+    By default, the "Standard" genetic code is used (ID 1; see
+    http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) for translation;
+    if an alternative genetic code is desired, pass 'genetic_code' as a key in
+    the params dict with the (integer) value of the genetic code to use.
 
     query_fasta_fp: absolute path to the query fasta file containing DNA
                    sequences.
@@ -384,7 +383,7 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
         gc_id = params['genetic_code']
         del params['genetic_code']
     else:
-        gc_id = 11
+        gc_id = 1
     genetic_code = GeneticCodes[gc_id]
     
     my_params.update(params)
