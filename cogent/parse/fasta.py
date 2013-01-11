@@ -68,7 +68,37 @@ def MinimalFastaParser(infile, strict=True, \
         seq = ''.join(rec[1:])
 
         yield label, seq
+        
+def MinimalFastaQualityParser(infile, strict=True, \
+    label_to_name=str, finder=FastaFinder, quality_converter=str, \
+    is_label=None, label_characters='>'):
+    """Yields successive sequences from infile as (label, qual) tuples.
 
+    If strict is True (default), raises RecordError when label or seq missing.
+    """
+    
+    for rec in finder(infile):
+        #first line must be a label line
+        if not rec[0][0] in label_characters:
+            if strict:
+                raise RecordError, "Found Fasta record without label line: %s"%\
+                    rec
+            else:
+                continue
+        #record must have at least one sequence
+        if len(rec) < 2:
+            if strict:
+                raise RecordError, "Found label line without sequences: %s" % \
+                    rec
+            else:
+                continue
+            
+        label = rec[0][1:].strip()
+        label = label_to_name(label)
+        qual = ' '.join(rec[1:])
+        qual = quality_converter(qual)
+        yield label, qual
+        
 GdeFinder = LabeledRecordFinder(is_gde_label, ignore=is_blank) 
 
 def MinimalGdeParser(infile, strict=True, label_to_name=str):
