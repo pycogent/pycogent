@@ -73,8 +73,10 @@ def MinimalFastaQualityParser(infile, strict=True, \
     label_to_name=str, finder=FastaFinder, quality_converter=str, \
     is_label=None, label_characters='>'):
     """Yields successive sequences from infile as (label, qual) tuples.
-
-    If strict is True (default), raises RecordError when label or seq missing.
+       infile: python file object representing a fasta file
+       strict: If strict is True (default), raises RecordError when label or seq missing.
+       label_to_name: function to transform the sequence identifier (default: str())
+       quality_converter: function to transform the quality string (default: str())
     """
     
     for rec in finder(infile):
