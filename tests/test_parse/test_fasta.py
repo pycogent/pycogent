@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for FASTA and related parsers.
 """
-from cogent.parse.fasta import FastaParser, MinimalFastaParser, \
+from cogent.parse.fasta import FastaParser, MinimalFastaParser, MinimalFastaQualityParser, \
     NcbiFastaLabelParser, NcbiFastaParser, RichLabel, LabelParser, GroupFastaParser
 from cogent.core.sequence import DnaSequence, Sequence, ProteinSequence as Protein
 from cogent.core.info import Info
@@ -34,6 +34,8 @@ class GenericFastaTest(TestCase):
         self.twogood='>123\n\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
         self.oneX='>123\nX\n> \t abc  \t \ncag\ngac\n>456\nc\ng'.split('\n')
         self.nolabels = 'GJ>DSJGSJDF\nSFHKLDFS>jkfs\n'.split('\n')
+        self.qualityOneline = '>abc\n0 30 14 10\n'.split('\n')
+        self.qualityTwoline = '>abc\n0 30 14 10\n13 28 27'.split('\n')
         self.empty = []
  
 class MinimalFastaParserTests(GenericFastaTest):
@@ -85,6 +87,20 @@ class MinimalFastaParserTests(GenericFastaTest):
         self.assertEqual(a, ('abc', 'caggac'))
         self.assertEqual(b, ('456', 'cg'))
 
+class FastaQualityParserTests(GenericFastaTest):
+    
+    def test_qualityOneline(self):
+        f = list(MinimalFastaQualityParser(self.qualityOneline))
+        self.assertEqual(len(f), 1)
+        a = f[0]
+        self.assertEqual(a, ('abc', '0 30 14 10')) 
+    
+    def test_qualityTwoline(self):
+       f = list(MinimalFastaQualityParser(self.qualityTwoline))
+       self.assertEqual(len(f), 1)
+       a = f[0]
+       self.assertEqual(a, ('abc', '0 30 14 10 13 28 27'))
+    
 class FastaParserTests(GenericFastaTest):
     """Tests of FastaParser: returns sequence objects."""
        
