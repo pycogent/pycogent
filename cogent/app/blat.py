@@ -342,8 +342,9 @@ def assign_dna_reads_to_protein_database(query_fasta_fp, database_fasta_fp,
     from the input query fasta file because BLAT cannot do this automatically.
 
     By default, the "Standard" genetic code is used (ID 1; see
-    http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi) for translation;
-    if an alternative genetic code is desired, pass 'genetic_code' as a key in
+    http://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html/index.cgi?chapter=cgencodes)
+    for translation).
+    If an alternative genetic code is desired, pass 'genetic_code' as a key in
     the params dict with the (integer) value of the genetic code to use.
 
     query_fasta_fp: absolute path to the query fasta file containing DNA
