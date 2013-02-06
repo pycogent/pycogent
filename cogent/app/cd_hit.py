@@ -3,6 +3,7 @@
 
 import shutil
 from os import remove
+from os.path import join as path_join
 from cogent.app.parameters import ValuedParameter
 from cogent.app.util import CommandLineApplication, ResultPath,\
         get_tmp_filename
@@ -177,14 +178,15 @@ class CD_HIT(CommandLineApplication):
     def _get_seqs_outfile(self):
         """Returns the absolute path to the seqs outfile"""
         if self.Parameters['-o'].isOn():
-            return self.Parameters['-o'].Value
+            return path_join(self.WorkingDir, self.Parameters['-o'].Value)
         else:
             raise ValueError, "No output file specified"
 
     def _get_clstr_outfile(self):
         """Returns the absolute path to the clstr outfile"""
         if self.Parameters['-o'].isOn():
-            return ''.join([self.Parameters['-o'].Value, '.clstr'])
+            return path_join(self.WorkingDir,\
+                    ''.join([self.Parameters['-o'].Value, '.clstr']))
         else:
             raise ValueError, "No output file specified"
 
