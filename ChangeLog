@@ -20,6 +20,9 @@ Changes
 Bug Fixes
 ---------
 
+* Fixed bug in cogent.core.tree.PhyloNode.setMaxTipTipDistance where the
+  method was accidentally updating variables in place across the tree and 
+  producing incorrect results. Added a more explicit test as well.
 * Fixed bug in cogent.maths.stats.test.t_two_sample that returned a t-statistic
   with the wrong sign if the first distribution contained multiple values and
   the second distribution contained only a single value.
