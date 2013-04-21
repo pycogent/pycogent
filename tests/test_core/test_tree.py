@@ -1360,6 +1360,22 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tip_a[0] + tip_b[0], 10)
         self.assertEqual(sorted([tip_a[1],tip_b[1]]), ['g','h'])
 
+        print "******************"
+        t_str = "((a:0.1,b:0.2)i1:0.3,(c:0.05,d:0.123)i2:0.08)root;"
+        t = DndParser(t_str)
+        t.setMaxTipTipDistance()
+        self.assertEqual(t.MaxDistTips, [[0.203, 'd'], [0.5, 'b']])
+        self.assertEqual(t.Children[0].MaxDistTips, [[0.1, 'a'], [0.2, 'b']])
+        self.assertEqual(t.Children[1].MaxDistTips, [[0.05, 'c'], [0.123, 'd']])
+        self.assertEqual(t.Children[0].Children[0].MaxDistTips, 
+                        [[0.0, 'a'], [0.0, 'a']])
+        self.assertEqual(t.Children[0].Children[1].MaxDistTips, 
+                        [[0.0, 'b'], [0.0, 'b']])
+        self.assertEqual(t.Children[1].Children[0].MaxDistTips, 
+                        [[0.0, 'c'], [0.0, 'c']])
+        self.assertEqual(t.Children[1].Children[1].MaxDistTips, 
+                        [[0.0, 'd'], [0.0, 'd']])
+
     def test_maxTipTipDistance(self):
         """maxTipTipDistance returns the max dist between any pair of tips"""
         nodes, tree = self.TreeNode, self.TreeRoot

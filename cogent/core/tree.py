@@ -1047,17 +1047,28 @@ class TreeNode(object):
             else:
                 if len(n.Children) == 1:
                     tip_a, tip_b = n.Children[0].MaxDistTips
+
+                    # avoid inplace ops...
+                    tip_a = tip_a[:]
+                    tip_b = tip_b[:]
+
                     tip_a[0] += n.Children[0].Length or 0.0
                     tip_b[0] += n.Children[0].Length or 0.0
                 else:
-                    tip_info = [(max(c.MaxDistTips), c) for c in n.Children]
+                    tip_info = [(max(c.MaxDistTips[:]), c) for c in n.Children]
                     dists = [i[0][0] for i in tip_info]
                     best_idx = argsort(dists)[-2:]
                     tip_a, child_a = tip_info[best_idx[0]]
                     tip_b, child_b = tip_info[best_idx[1]]
+                    
+                    # avoid inplace ops...
+                    tip_a = tip_a[:]
+                    tip_b = tip_b[:]
+
                     tip_a[0] += child_a.Length or 0.0
                     tip_b[0] += child_b.Length or 0.0
-                n.MaxDistTips = [tip_a, tip_b]
+                
+                n.MaxDistTips = [tip_a[:], tip_b[:]]
 
     def getMaxTipTipDistance(self):
         """Returns the max tip tip distance between any pair of tips
