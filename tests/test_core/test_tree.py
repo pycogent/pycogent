@@ -1360,7 +1360,6 @@ class PhyloNodeTests(TestCase):
         self.assertEqual(tip_a[0] + tip_b[0], 10)
         self.assertEqual(sorted([tip_a[1],tip_b[1]]), ['g','h'])
 
-        print "******************"
         t_str = "((a:0.1,b:0.2)i1:0.3,(c:0.05,d:0.123)i2:0.08)root;"
         t = DndParser(t_str)
         t.setMaxTipTipDistance()
