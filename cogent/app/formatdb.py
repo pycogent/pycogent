@@ -23,19 +23,20 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Production"
 
-class FormatDb(CommandLineApplication):
+
+class MakeBlastDb(CommandLineApplication):
     """ ApplicationController for formatting blast databases
     
         Currently contains a minimal parameter set.
     """
 
-    _command = 'formatdb'
+    _command = 'makeblastdb'
     _parameters = {\
-     '-i':ValuedParameter(Prefix='-',Name='i',Delimiter=' ',IsPath=True),\
-     '-l':ValuedParameter(Prefix='-',Name='l',Delimiter=' ',IsPath=True),\
-     '-o':ValuedParameter(Prefix='-',Name='o',Delimiter=' ',Value='T'),\
-     '-p':ValuedParameter(Prefix='-',Name='p',Delimiter=' ',Value='F'),\
-     '-n':ValuedParameter(Prefix='-',Name='n',Delimiter=' ')
+     '-in':ValuedParameter(Prefix='-',Name='in',Delimiter=' ',IsPath=True),\
+     '-logfile':ValuedParameter(Prefix='-',Name='logfile',Delimiter=' ',IsPath=True),\
+     '-out':ValuedParameter(Prefix='-',Name='out',Delimiter=' ',Value='T'),\
+     '-dbtype':ValuedParameter(Prefix='-',Name='dbtype',Delimiter=' ',Value='F'),\
+     '-title':ValuedParameter(Prefix='-',Name='title',Delimiter=' ')
      }
     _input_handler = '_input_as_parameter'
     _suppress_stdout = True
@@ -44,7 +45,7 @@ class FormatDb(CommandLineApplication):
     def _input_as_parameter(self,data):
         """ Set the input path and log path based on data (a fasta filepath)
         """
-        self.Parameters['-i'].on(data)
+        self.Parameters['-in'].on(data)
         # access data through self.Parameters so we know it's been cast
         # to a FilePath
         input_filepath = self.Parameters['-i'].Value
@@ -52,8 +53,8 @@ class FormatDb(CommandLineApplication):
         input_file_base, input_file_ext = splitext(input_filename)
         # FIXME: the following all other options
         # formatdb ignores the working directory if not name is passed.
-        self.Parameters['-l'].on(FilePath('%s.log') % input_filename)
-        self.Parameters['-n'].on(FilePath(input_filename))
+        self.Parameters['-logile'].on(FilePath('%s.log') % input_filename)
+        self.Parameters['-title'].on(FilePath(input_filename))
         return ''
 
     def _get_result_paths(self,data):
@@ -62,14 +63,16 @@ class FormatDb(CommandLineApplication):
         # access data through self.Parameters so we know it's been cast
         # to a FilePath
         wd = self.WorkingDir
-        db_name = self.Parameters['-n'].Value
-        log_name = self.Parameters['-l'].Value
+        db_name = self.Parameters['-title'].Value
+        log_name = self.Parameters['-logfile'].Value
         result = {}
         result['log'] = ResultPath(Path=wd + log_name, IsWritten=True)
-        if self.Parameters['-p'].Value == 'F':
+        if self.Parameters['-dbtype'].Value == 'nucl':
             extensions = ['nhr','nin','nsq','nsd','nsi']
-        else:
+        elif self.Parameters['-dbtype'].Value == 'prot':
             extensions = ['phr','pin','psq','psd','psi']
+        else:
+            raise ValueError("dbtype can only be 'nucl' or 'prot'")
         for extension in extensions:
             for file_path in glob(wd + (db_name + '*' + extension)):
                 # this will match e.g. nr.01.psd and nr.psd
@@ -83,13 +86,14 @@ class FormatDb(CommandLineApplication):
         """
         return exit_status == 0
         
+        
 def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\
     output_dir=None,HALT_EXEC=False):
     """Build blast db from fasta_path; return db name and list of files created
     
         **If using to create temporary blast databases, you can call
         cogent.util.misc.remove_files(db_filepaths) to clean up all the
-        files created by formatdb when you're done with the database.
+        files created by makeblastdb when you're done with the database.
     
         fasta_path: path to fasta file of sequences to build database from
         is_protein: True if working on protein seqs (default: False)
@@ -111,7 +115,7 @@ def build_blast_db_from_fasta_path(fasta_path,is_protein=False,\
         db_name = output_dir + fasta_filename
 
     # instantiate the object
-    fdb = FormatDb(WorkingDir=output_dir,HALT_EXEC=HALT_EXEC)
+    fdb = MakeBlastDb(WorkingDir=output_dir,HALT_EXEC=HALT_EXEC)
     if is_protein:
         fdb.Parameters['-p'].on('T')
     else:
@@ -132,7 +136,7 @@ def build_blast_db_from_fasta_file(fasta_file,is_protein=False,\
     
         **If using to create temporary blast databases, you can call
         cogent.util.misc.remove_files(db_filepaths) to clean up all the
-        files created by formatdb when you're done with the database.
+        files created by makeblastdb when you're done with the database.
     
         fasta_path: path to fasta file of sequences to build database from
         is_protein: True if working on protein seqs (default: False)
