@@ -226,11 +226,6 @@ def join_paired_end_reads_fastqjoin(
         shutil.move(file_path, new_file_path)
         path_dict[key] = new_file_path
 
-    # sanity check that files actually exist in path lcoations
-    for path in path_dict.values():
-        if not os.path.exists(path):
-            raise IOError, 'Output file not found at: %s' % path
-
     return path_dict
 
 
