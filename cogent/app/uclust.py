@@ -351,7 +351,6 @@ def uclust_fasta_sort_from_filepath(
     output_filepath = output_filepath or \
      get_tmp_filename(tmp_dir=tmp_dir, prefix='uclust_fasta_sort', 
                       suffix='.fasta')
-    tmp_working_dir = split(output_filepath)[0]
     
     app = Uclust(params={'--tmpdir':tmp_dir},HALT_EXEC=HALT_EXEC)
     
