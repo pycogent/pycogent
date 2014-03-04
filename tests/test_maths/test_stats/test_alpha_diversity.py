@@ -161,7 +161,7 @@ class diversity_tests(TestCase):
         """heip e should match hand-calculated value"""
         c = array([1,2,3,1])
         h = shannon(c, base=e)
-        expected = exp(h-1)/3
+        expected = (exp(h)-1)/3
         self.assertEqual(heip_e(c), expected)
 
     def test_simpson_e(self):
