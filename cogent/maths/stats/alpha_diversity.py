@@ -173,7 +173,7 @@ def mcintosh_e(counts):
 
 def heip_e(counts):
     """Heip's evenness measure: Heip & Engels 1974."""
-    return exp(shannon(counts, base=e)-1)/((counts!=0).sum()-1)
+    return (exp(shannon(counts, base=e))-1)/((counts!=0).sum()-1)
 
 def simpson_e(counts):
     """Simpson's evenness, from SDR-IV."""
