@@ -1145,8 +1145,14 @@ class Variation(_Region):
 
         self._table_rows['allele_table'] = records
         data = []
+        
+        if self.genome.GeneralRelease > 71:
+            sample_id = 'population_id'
+        else:
+            sample_id = 'sample_id'
+        
         for rec in records:
-            if not rec['sample_id']:
+            if not rec[sample_id]:
                 continue
 
             if allele_code is None:
@@ -1156,14 +1162,14 @@ class Variation(_Region):
                                           allele_code.c.allele_code_id == rec['allele_code_id'])
                 allele = list(allele_query.execute())[0][0]
 
-            data.append((allele, rec['frequency'], rec['sample_id']))
+            data.append((allele, rec['frequency'], rec[sample_id]))
 
         if not data:
             self._cached[('AlleleFreqs')] = self.NULL_VALUE
             return
 
-        table = Table(header='allele freq sample_id'.split(), rows=data)
-        self._cached[('AlleleFreqs')] = table.sorted(['sample_id', 'allele'])
+        table = Table(header=['allele', 'freq', sample_id], rows=data)
+        self._cached[('AlleleFreqs')] = table.sorted([sample_id, 'allele'])
 
     def _get_allele_freqs(self):
         return self._get_cached_value('AlleleFreqs',
@@ -1250,14 +1256,15 @@ class Variation(_Region):
             translation_location += [record['translation_start']]
 
         if not pep_alleles:
-            print 'Expected at least a single record'
-            raise RuntimeError
+            self._cached['PeptideAlleles'] = self.NULL_VALUE
+            self._cached['TranslationLocation'] = self.NULL_VALUE
+            return
 
         # we only want unique allele strings
         allele_location = dict(zip(pep_alleles, translation_location))
         pep_alleles = list(set(pep_alleles))
         pep_alleles = [pep_alleles, pep_alleles[0]][len(pep_alleles)==1]
-        if type(pep_alleles) != str:
+        if type(pep_alleles) not in (str, unicode):
             for pep_allele in pep_alleles:
                 translation_location = allele_location[pep_allele]
         else:

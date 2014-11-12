@@ -1,6 +1,19 @@
 #!/usr/bin/env python
-import MySQLdb
+import warnings
 import sqlalchemy as sql
+
+try:
+    import mysql.connector as mysql_connect
+    connect_template = 'mysql+mysqlconnector://%(account)s/%(db_name)s?raise_on_warnings=False'
+    password_arg = 'password'
+    sql_version = tuple([int(v) for v in sql.__version__.split(".") if v.isdigit()])
+    if sql_version < (0, 9, 7):
+        warnings.warn('mysql.connector requires sqlalchemy >= 0.9.7\n')
+        raise ImportError
+except ImportError:
+    import MySQLdb as mysql_connect
+    connect_template = 'mysql+mysqldb://%(account)s/%(db_name)s'
+    password_arg = 'passwd'
 
 from cogent.util.table import Table
 from cogent.db.ensembl.species import Species
@@ -24,13 +37,20 @@ class HostAccount(object):
         self.user = user
         self.passwd = passwd
         self.port = port or 3306
+        self._hash = hash((self.host, self.user, self.port))
     
     def __cmp__(self, other):
-        return cmp((self.host, self.user, self.port),
-                    (other.host, other.user, other.port))
+        return cmp(self._hash, other._hash)
+    
+    def __eq__(self, other):
+        return self._hash == other._hash
+    
+    def __hash__(self):
+        return self._hash
     
     def __str__(self):
         return '%s:%s@%s:%s' % (self.user,self.passwd,self.host,self.port)
+    
 
 def get_ensembl_account(release=None):
     """returns an HostAccount for ensembl.
@@ -53,11 +73,12 @@ class EngineCache(object):
         pool_recycle = pool_recycle or 3600
         if account not in self._db_account.get(db_name, []):
             if db_name == "PARENT":
-                engine = MySQLdb.connect(host=account.host, user=account.user,
-                                    passwd=account.passwd, port=account.port)
+                args = {password_arg: account.passwd}
+                engine = mysql_connect.connect(host=account.host, user=account.user,
+                                    port=account.port, **args)
             else:
-                engine = sql.create_engine("mysql://%s/%s" % (account, 
-                                        db_name), pool_recycle=pool_recycle)
+                engine = sql.create_engine(connect_template % dict(account=account, 
+                                        db_name=db_name), pool_recycle=pool_recycle)
             if db_name not in self._db_account:
                 self._db_account[db_name] = {}
             self._db_account[db_name][account] = engine

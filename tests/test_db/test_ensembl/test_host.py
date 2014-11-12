@@ -15,7 +15,7 @@ __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"
 
-Release = 68
+Release = 76
 
 if 'ENSEMBL_ACCOUNT' in os.environ:
     args = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -26,6 +26,7 @@ if 'ENSEMBL_ACCOUNT' in os.environ:
     account = HostAccount(host, username, password, **kwargs)
 else:
     account = get_ensembl_account(release=Release)
+
 
 class TestEnsemblDbName(TestCase):
     def test_cmp_name(self):
@@ -60,6 +61,19 @@ class TestEnsemblDbName(TestCase):
         self.assertEqual(n.Release, '6')
         self.assertEqual(n.GeneralRelease, '59')
         self.assertEqual(n.Type, 'compara')
+    
+class TestHostAccount(TestCase):
+    def test_host_comparison(self):
+        """instances with same host, account, database, port are equal"""
+        h1 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5306)
+        h2 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5306)
+        self.assertNotEqual(id(h1), id(h2))
+        self.assertEqual(h1, h2)
+        # hashes are also equal
+        self.assertEqual(hash(h1), hash(h2))
+        h3 = HostAccount("ensembldb.ensembl.org", "anonymous", "", port=5300)
+        self.assertNotEqual(h1, h3)
+        self.assertNotEqual(hash(h1), hash(h3))
     
 
 class TestDBconnects(TestCase):

@@ -10,7 +10,8 @@ __author__ = "Peter Maxwell and Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Hau Ying", "Helen Lindsay", "Jeremy Widmann",
-                    "Sandra Smit", "Greg Caporaso", "Matthew Wakefield"]
+                    "Sandra Smit", "Greg Caporaso", "Matthew Wakefield",
+                "Ben Kaehler"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
@@ -96,6 +97,7 @@ def suite():
         'test_maths.test_fit_function',
         'test_maths.test_geometry',
         'test_maths.test_matrix_logarithm',
+        'test_maths.test_matrix_exponential_integration',
         'test_maths.test_period',
         'test_maths.test_matrix.test_distance',
         'test_maths.test_spatial.test_ckd3',
@@ -284,11 +286,16 @@ def suite():
         if 'ENSEMBL_ACCOUNT' in os.environ:
             # check for cogent.db.ensembl dependencies
             test_ensembl = True
-            for module in ['MySQLdb', 'sqlalchemy']:
-                if not module_present(module):
-                    test_ensembl = False
-                    print >> sys.stderr, \
-                        "Module '%s' not present: skipping test" % module
+            if not (module_present('MySQLdb') or module_present('mysql')):
+                test_ensembl = False
+                print >> sys.stderr, \
+                    "Module 'mysql-connector-python' and 'MySQL-python' not "\
+                        "present: skipping test"
+            
+            if not module_present('sqlalchemy'):
+                test_ensembl = False
+                print >> sys.stderr, \
+                    "Module 'sqlalchemy' not present: skipping test"
 
             if test_ensembl:
                 db_tests += ['test_db.test_ensembl.test_assembly',
