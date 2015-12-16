@@ -87,12 +87,10 @@ def fast_unifrac_file(tree_in, envs_in, weighted=False, metric=unifrac, is_symme
     envs = count_envs(envs_in)
     return fast_unifrac(tree, envs, weighted, metric, is_symmetric=is_symmetric, modes=modes)
 
-def fast_unifrac_permutations_file(tree_in, envs_in, weighted=False, 
+def fast_unifrac_permutations_iter(t, envs, weighted=False,
     num_iters=1000, verbose=False, test_on=TEST_ON_PAIRWISE):
-    """ Wrapper to read tree and envs from files. """
+    """ Perform UniFrac significance tests. """
     result = []
-    t = DndParser(tree_in, UniFracTreeNode)
-    envs = count_envs(envs_in)
     if test_on == TEST_ON_PAIRWISE:
         # calculate real values
         results = fast_unifrac(t, envs,weighted=weighted, metric=unifrac,
@@ -133,12 +131,18 @@ def fast_unifrac_permutations_file(tree_in, envs_in, weighted=False,
         raise ValueError, "Invalid test_on value: %s" % str(test_on)
     return result
 
-def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False, 
-    test_on=TEST_ON_PAIRWISE):
-    """ Wrapper to read tree and envs from files. """
-    result = []
+def fast_unifrac_permutations_file(tree_in, envs_in, weighted=False,
+    num_iters=1000, verbose=False, test_on=TEST_ON_PAIRWISE):
+    """ Wrapper to read tree and envs from files and call fast_unifrac_permutations_iter. """
     t = DndParser(tree_in, UniFracTreeNode)
     envs = count_envs(envs_in)
+    return fast_unifrac_permutations_iter(t, envs, weighted=weighted, num_iters=num_iters,
+                                          verbose=verbose, test_on=test_on)
+
+def fast_p_test_iter(t, envs, num_iters=1000, verbose=False,
+    test_on=TEST_ON_PAIRWISE):
+    """ Perform P-tests. """
+    result = []
     unique_envs, num_uenvs = get_unique_envs(envs)
     # calculate real, sim vals and p-vals for each pair of envs in tree 
     if test_on == TEST_ON_PAIRWISE:
@@ -167,6 +171,13 @@ def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
         raise ValueError, "Invalid test_on value: %s" % str(test_on)
 
     return result
+
+def fast_p_test_file(tree_in, envs_in, num_iters=1000, verbose=False,
+    test_on=TEST_ON_PAIRWISE):
+    """ Wrapper to read tree and envs from files and call fast_p_test_iter. """
+    t = DndParser(tree_in, UniFracTreeNode)
+    envs = count_envs(envs_in)
+    return fast_p_test_iter(t, envs, num_iters=num_iters, verbose=verbose, test_on=test_on)
 
 def _fast_unifrac_setup(t, envs, make_subtree=True):
     """Setup shared by fast_unifrac and by significance tests."""
