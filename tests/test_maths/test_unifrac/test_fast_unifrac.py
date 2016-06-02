@@ -28,6 +28,11 @@ __maintainer__ = "Rob Knight, Micah Hamady"
 __email__ = "rob@spot.colorado.edu, hamady@colorado.edu"
 __status__ = "Prototype"
 
+def _convert_obj(data):
+    '''handles unit_test issue'''
+    a = data[0].tolist()
+    return (a, data[1])
+
 class unifrac_tests(TestCase):
     """Tests of top-level functions."""
     def setUp(self):
@@ -240,20 +245,20 @@ f B 1
         e   C   1
         m   M   88"""
         env_counts = count_envs(env_str.splitlines())
-        self.assertFloatEqual(fast_unifrac(t1,env_counts)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
-            [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
+        got = _convert_obj(fast_unifrac(t1,env_counts)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
+             [10/16,0,8/17],
+             [8/13,8/17,0]],['A','B','C']))
         # changing tree topology relative to c,j tips shouldn't change 
         # anything
         t2 = DndParser('((a:1,b:2):4,((c:2, j:16):1,(d:1,e:1):2):3)', \
             UniFracTreeNode)
-        self.assertFloatEqual(fast_unifrac(t2,env_counts)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
-            [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
+        got = _convert_obj(fast_unifrac(t2,env_counts)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
+              [10/16,0,8/17],
+              [8/13,8/17,0]],['A','B','C']))
 
     def test_unifrac_make_subtree(self):
         """unifrac result should not depend on make_subtree
@@ -284,29 +289,29 @@ f B 1
         e   C   1
         m   M   88"""
         env_counts = count_envs(env_str.splitlines())
-        self.assertFloatEqual(fast_unifrac(t1,env_counts,make_subtree=False)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
+        got = _convert_obj(fast_unifrac(t1,env_counts,make_subtree=False)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
             [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
-        self.assertFloatEqual(fast_unifrac(t1,env_counts,make_subtree=True)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
+            [8/13,8/17,0]],['A','B','C']))
+        got = _convert_obj(fast_unifrac(t1,env_counts,make_subtree=True)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
             [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
+            [8/13,8/17,0]],['A','B','C']))
         # changing tree topology relative to c,j tips shouldn't change anything
         t2 = DndParser('((a:1,b:2):4,((c:2, (j:1,k:2)mt:17):1,(d:1,e:1):2):3)', \
             UniFracTreeNode)
-        self.assertFloatEqual(fast_unifrac(t2,env_counts,make_subtree=False)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
+        got = _convert_obj(fast_unifrac(t2,env_counts,make_subtree=False)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
             [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
-        self.assertFloatEqual(fast_unifrac(t2,env_counts,make_subtree=True)['distance_matrix'], \
-            (array(
-            [[0,10/16, 8/13],
+            [8/13,8/17,0]],['A','B','C']))
+        got = _convert_obj(fast_unifrac(t2,env_counts,make_subtree=True)['distance_matrix'])
+        self.assertFloatEqual(got,
+            ([[0,10/16, 8/13],
             [10/16,0,8/17],
-            [8/13,8/17,0]]),['A','B','C']))
+            [8/13,8/17,0]],['A','B','C']))
 
         # ensure we haven't meaningfully changed the tree 
         # by passing it to unifrac
@@ -512,7 +517,8 @@ f B 1
                             [8/13.,8/17.,0]])
         u2_distances = array([[0,11/14.,6/13.],[11/14.,0,7/13.],[6/13.,7/13., 0]])
         exp = (u1_distances + u2_distances)/2
-        self.assertFloatEqual(result['distance_matrix'], (exp, list('ABC')))
+        got = _convert_obj(result['distance_matrix'])
+        self.assertFloatEqual(got, (exp.tolist(), list('ABC')))
 
 
 if __name__ == '__main__':
