@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Unit tests for usage and substitution matrices.
 """
+from warnings import filterwarnings
 from cogent.util.unit_test import TestCase, main
 from cogent.core.moltype import RNA
 from cogent.core.usage import RnaBases, DnaBases, RnaPairs, DnaPairs
@@ -291,6 +292,7 @@ class PairMatrixTests(TestCase):
 
         #WARNING: m[a][b] doesn't work b/c indices not translated!
         #must access as m[a,b] instead.
+        filterwarnings("ignore", "using a non-integer")
         try:
             x = n['a']['b']
         except (ValueError, IndexError):
