@@ -493,14 +493,15 @@ def split_dimension(m, dim, shape=None):
     num_dims = len(curr_dims)
     #if shape not specified, assume it was square
     if shape is None:
-        shape = (sqrt(curr_dims[dim]),)*2
+        shape = (sqrt(curr_dims[dim]),) * 2
     #raise IndexError if index out of bounds
     curr_dims[dim]
     #fix negative indices
     if dim < 0:
         dim = num_dims + dim
     #extract the relevant region and reshape it
-    return reshape(m, curr_dims[:dim] + shape + curr_dims[dim+1:])
+    new_dim = curr_dims[:dim] + shape + curr_dims[dim+1:]
+    return reshape(m, new_dim)
 
 def non_diag(m):
     """From a sequence of n flattened 2D matrices, returns non-diag elements.
