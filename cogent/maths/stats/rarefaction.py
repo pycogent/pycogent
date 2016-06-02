@@ -136,7 +136,7 @@ def subsample_random(counts, n, dtype=uint):
     unpacked = concatenate([repeat(array(i,), counts[i]) for i in nz])
     permuted = sample(unpacked, n)
     result = zeros(len(counts),dtype=dtype)
-    for p in permuted:
+    for p in permuted.astype(int):
         result[p] += 1
     return result
 
