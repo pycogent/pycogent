@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Tests Numbers and Freqs objects, and their Unsafe versions.
 """
+from warnings import filterwarnings
 from math import sqrt
 import numpy
 from cogent.util.unit_test import TestCase, main
@@ -19,6 +20,7 @@ __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
 
+filterwarnings("ignore", "elementwise comparison failed")
 
 class SummaryStatisticsTests(TestCase):
     """Tests of summary stats functions."""
