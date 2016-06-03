@@ -313,7 +313,8 @@ class Enumeration(tuple):
                 data = ravel(array(a))
             except ValueError: #try mapping to string
                 data = ravel(array(map(str, a)))
-        return sum(asarray(self._allowed_range == data, Int), axis=-1)
+        result = asarray(self._allowed_range == data, Int)
+        return sum(result, axis=-1)
     
     def _get_pairs(self):
         """Accessor for pairs, lazy evaluation."""
