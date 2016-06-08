@@ -24,7 +24,7 @@ So the first step is to specify what host and account are to be used. On my lab'
 .. doctest::
     
     >>> import os
-    >>> Release = 76
+    >>> Release = 81
     >>> from cogent.db.ensembl import HostAccount
     >>> if 'ENSEMBL_ACCOUNT' in os.environ:
     ...     host, username, password = os.environ['ENSEMBL_ACCOUNT'].split()
@@ -82,7 +82,7 @@ As implied above, Ensembl databases are versioned, hence you must explicitly sta
     >>> from cogent.db.ensembl import HostAccount, Genome
     >>> human = Genome(Species='human', Release=Release, account=account)
     >>> print human
-    Genome(Species='Homo sapiens'; Release='76')
+    Genome(Species='Homo sapiens'; Release='81')
 
 Notice I used the common name rather than full name. The ``Genome`` provides an interface to obtaining different attributes. It's primary role is to allow selection of genomic regions according to some search criteria. The type of region is presently limited to ``Gene``, ``Est``, ``CpGisland``, ``Repeat`` and ``Variation``. There's also a ``GenericRegion``. The specific types are also capable of identifying information related to themselves, as we will demonstrate below.
 
@@ -209,7 +209,7 @@ There are obviously different types of genes, and the ``Genome`` object provides
 .. doctest::
 
     >>> print human.getDistinct('BioType')
-    [u'unitary_pseudogene', u'rRNA', u'lincRNA'...
+    ['unitary_pseudogene', 'rRNA', 'lincRNA',...
 
 The genome can be queried for any of these types, for instance we'll query for ``rRNA``. We'll get the first few records and then exit.
 
@@ -223,7 +223,7 @@ The genome can be queried for any of these types, for instance we'll query for `
     ...     if count == 1:
     ...         break
     ...
-    Gene(Species='Homo sapiens'; BioType='rRNA'; Description='RNA, 5S...
+    Gene(Species='Homo sapiens'; BioType='Mt_rRNA'; Description='mitochondrially encoded 12S...
 
 This has the effect of returning any gene whose ``BioType`` includes the phrase ``rRNA``. If a gene is not a protein coding gene, as in the current case, then it's ``Transcripts`` will have ``ProteinSeq==None`` and ``TranslatedExons==None``, but it will have ``Exons`` and a ``Cds``.
 
@@ -254,7 +254,7 @@ Getting Variation
 .. doctest::
 
     >>> print human.getDistinct('Effect')
-    ['3_prime_UTR_variant', 'splice_acceptor_variant', 'intergenic_variant'...
+    ['incomplete_terminal_codon_variant', 'splice_acceptor_variant', 'intergenic_variant'...
 
 and that information can be used to query the genome for all variation of that effect. 
 
@@ -264,20 +264,20 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
 
 .. doctest::
 
-    >>> nsyn_variants = human.getVariation(Effect='missense_variant')
+    >>> nsyn_variants = human.getVariation(Effect='missense_variant', limit=1000)
     >>> for i, nsyn_variant in enumerate(nsyn_variants):
     ...     if nsyn_variant.Effect == 'missense_variant' and\
     ...                          nsyn_variant.AlleleFreqs:
     ...         break
     ...     
     >>> print nsyn_variant
-    Variation(Symbol='rs1638319'; Effect='missense_variant'; Alleles='A/G')
+    Variation(Symbol='rs17852242'; Effect='missense_variant'; Alleles='A/T')
     >>> print nsyn_variant.AlleleFreqs
     =================================
     allele      freq    population_id
     ---------------------------------
-         A    0.5000             9088
-         G    0.5000             9088
+         A    0.8620            12951
+         T    0.1380            12951
     ---------------------------------
 
 ``Variation`` objects also have other useful properties, such as a location, the number of alleles and the allele frequencies. The length of a ``Variation`` instance is the length of it's longest allele.
@@ -286,7 +286,7 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
 
     >>> assert len(nsyn_variant) == 1
     >>> print nsyn_variant.Location
-    Homo sapiens:chromosome:1:69967-69968:1
+    Homo sapiens:chromosome:CHR_HSCHR12_1_CTG1:70987-70988:1
     >>> assert nsyn_variant.NumAlleles == 2
 
 ``Variation`` objects have ``FlankingSeq`` and ``Seq`` attributes which in the case of a SNP is a single nucleotide long and should correspond to one of the alleles. In the latter case, this property is a tuple with the 0th entry being the 5'- 300 nucleotides and the 1st entry being the 3' nucleotides.
@@ -296,9 +296,9 @@ We allow the query to be an inexact match by setting ``like=True``. Again we'll 
 .. doctest::
 
     >>> print nsyn_variant.FlankingSeq[0]
-    TTGCTAACAGT...
+    GTGGGGTGGGG...
     >>> print nsyn_variant.FlankingSeq[1]
-    GCTGAGAAAAT...
+    CCCAGCGAGAG...
     >>> assert str(nsyn_variant.Seq) in nsyn_variant.Alleles, str(nsyn_variant.Seq)
 
 As a standard feature, ``Variation`` within a specific interval can also be obtained. Using the ``brca2`` gene region instance created above, we can find all the genetic variants using the ``Variants`` property of genome regions. We use this example to also demonstrate the ``PeptideAlleles`` and ``TranslationLocation`` attributes. ``PeptideAlleles`` is the amino-acid variation resulting from the nucleotide variation while ``TranslationLocation`` is the position in the translated peptide of the variant. If a variant does not affect protein coding sequence (either it's not exonic or it's a synonymous variant) then these properties have the value ``None``.
@@ -324,7 +324,7 @@ We can also use a slightly more involved query to find all variants within the g
     ...     if 'missense_variant' in snp.Effect:
     ...         break
     >>> print snp
-    Variation(Symbol='rs80358836'; Effect=['non_coding_exon_variant', 'nc_transcript_variant', 'upstream_gene_variant', 'missense_variant'...
+    Variation(Symbol='rs80358836'; Effect=['non_coding_transcript_exon_variant', 'missense_variant'...
     >>> print snp.Location
     Homo sapiens:chromosome:13:32316464-32316465:1
 
@@ -341,15 +341,15 @@ In Ensembl's databases, each type of feature may be recorded at multiple coordin
    >>> chicken = Genome(Species='chook', Release=Release, account=account)
    >>> print chicken.FeatureCoordLevels
    Gallus gallus
-   ============================================
-        Type                             Levels
-   --------------------------------------------
-        gene                         chromosome
-      repeat                             contig
-         est                         chromosome
-   variation                         chromosome
-         cpg    chromosome, supercontig, contig
-   --------------------------------------------
+   =================================
+        Type                  Levels
+   ---------------------------------
+        gene    chromosome, scaffold
+      repeat    chromosome, scaffold
+         est    chromosome, scaffold
+   variation              chromosome
+         cpg    chromosome, scaffold
+   ---------------------------------
 
 Comparative Analyses
 --------------------
@@ -364,7 +364,7 @@ The Ensembl compara database is represented by ``cogent.db.ensembl.compara.Compa
     >>> compara = Compara(['human', 'mouse', 'rat'], account=account,
     ...                  Release=Release)
     >>> print compara
-    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=76...
+    Compara(Species=('Homo sapiens', 'Mus musculus', 'Rattus norvegicus'); Release=81...
 
 The ``Compara`` object loads the corresponding ``Genome``'s and attaches them to itself as named attributes (use ``Species.getComparaName`` to find out what the attribute will be). The genome instances are named according to their common name in CamelCase, or Scase. For instance, if we had created a ``Compara`` instance with the American pika species included, then that genome would be accessed as ``compara.AmericanPika``. Common names containing a '.' are treated differently. For instance, the common name for *Caenorhabditis remanei* is ``C.remanei`` which becomes ``compara.Cremanei``. We access the human genome in this ``Compara`` instance and conduct a gene search.
 
@@ -411,7 +411,7 @@ The ``RelatedGenes`` object has a number of properties allowing you to get acces
     >>> print orthologs.Members
     (Gene(Species='Rattus norvegicus'; BioType='protein_coding'; Descr...
     >>> print orthologs.getSeqLengths()
-    [40748, 84793, 47117]
+    [40742, 84793, 47700]
 
 In addition there's a ``getMaxCdsLengths`` method for returning the lengths of the longest ``Cds`` from each member.
 
@@ -426,7 +426,7 @@ You can also obtain the sequences as a ``cogent`` ``SequenceCollection`` (unalig
 
     >>> seqs = orthologs.getSeqCollection(feature_types='gene')
     >>> print seqs.Names
-    ['Rattus norvegicus:chromosome:12:491...
+    ['Rattus norvegicus:chromosome:12:504...
 
 We can also search for other relationship types, which we do here for a histone.
 
@@ -449,9 +449,9 @@ Ensembl stores multiple sequence alignments for selected species. For a given gr
     ============================================================================...
     method_link_species_set_id  method_link_id  species_set_id      align_method...
     ----------------------------------------------------------------------------...
-                           753              10           35883             PECAN...
-                           741              13           35734               EPO...
-                           743              14           35736  EPO_LOW_COVERAGE...
+                           788              10           36176             PECAN...
+                           780              13           36102               EPO...
+                           781              14           36103  EPO_LOW_COVERAGE...
     ----------------------------------------------------------------------------...
 
 The ``align_method`` and ``align_clade`` columns can be used as arguments to ``getSyntenicRegions``. This method is responsible for returning ``SyntenicRegions`` instances for a given coordinate from a species. As it's possible that multiple records may be found from the multiple alignment for a given set of coordinates, the result of calling this method is a python generator. The returned regions have a length, defined by the full set of aligned sequences. If the ``omit_redundant`` argument is used, then positions with gaps in all sampled species will be removed in the alignment to be returned. The length of the syntenic region, however, is the length of the unfiltered alignment.
@@ -467,11 +467,10 @@ The ``align_method`` and ``align_clade`` columns can be used as arguments to ``g
     ...     print len(syntenic_region)
     ...     print repr(syntenic_region.getAlignment(omit_redundant=False))
     SyntenicRegions:
-      Coordinate(Human,chro...,13,32316515-32356518,1)
-      Coordinate(Mouse,chro...,5,150523267-150550922,1)
-      Coordinate(Rat,chro...,12,491349-514449,1)
-    118454
-    3 x 118454 dna alignment: Homo sapiens:chromosome:13:32316515-32356518...
+      Coordinate(Human,chro...,13,32315473-32316418,1)
+      Coordinate(Mouse,chro...,5,150522620-150523171,1)
+    1365
+    2 x 1365 dna alignment: Homo sapiens:chromosome:13:32315473-32316418...
 
 We consider a species for which pairwise alignments are available -- the bush baby.
 
@@ -480,7 +479,7 @@ We consider a species for which pairwise alignments are available -- the bush ba
     >>> compara_pair = Compara(['Human', 'Bushbaby'], Release=Release,
     ...                        account=account)
     >>> print compara_pair
-    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=76; connected=True)
+    Compara(Species=('Homo sapiens', 'Otolemur garnettii'); Release=81; connected=True)
 
 
 Printing the ``method_species_links`` table provides all the necessary information for specifying selection conditions.
@@ -490,7 +489,7 @@ Printing the ``method_species_links`` table provides all the necessary informati
     ============================================================================...
     method_link_species_set_id  method_link_id  species_set_id      align_method...
     ----------------------------------------------------------------------------...
-                           743              14           35736  EPO_LOW_COVERAGE...
+                           781              14           36103  EPO_LOW_COVERAGE...
                            682              16           35678         LASTZ_NET...
     ----------------------------------------------------------------------------...
 
