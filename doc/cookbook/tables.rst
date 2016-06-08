@@ -206,7 +206,7 @@ Summing a single column
 
     >>> table = LoadTable('stats.txt', sep=',')
     >>> table.summed('Ratio')
-    20571166.652847398
+    20571166.652...
 
 Summing multiple columns or rows - strictly numerical data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

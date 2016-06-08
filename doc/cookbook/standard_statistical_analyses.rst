@@ -599,12 +599,10 @@ The plotting code uses matplotlib_.
     >>> import matplotlib.pyplot as plt
     >>> fig = plt.figure()
     >>> ax = fig.add_subplot(111)
-    >>> ax.scatter(arr[0],arr[1],s=250,color='b',marker='s')
-    <matplotlib.collections.RegularPolyCollection object...
-    >>> ax.scatter(rotated_x,rotated_y,s=250,color='r',marker='o')
-    <matplotlib.collections.CircleCollection object...
+    >>> sc = ax.scatter(arr[0],arr[1],s=250,color='b',marker='s')
+    >>> sc = ax.scatter(rotated_x,rotated_y,s=250,color='r',marker='o')
     >>> plt.axis('equal')
-    (0.0, 12.0, -2.0, 8.0)
+    (-2.0, 12.0, -2.0, 8.0)
 
 Plot the least squares regression lines too
 
@@ -690,7 +688,7 @@ The plot code
     >>> plt.pcolormesh(data)
     <matplotlib.collections.QuadMesh object ...
     >>> plt.colorbar()
-    <matplotlib.colorbar.Colorbar instance ...
+    <matplotlib.colorbar.Colorbar object ...
     >>> plt.savefig('heatmap_example.png')
 
 .. doctest::

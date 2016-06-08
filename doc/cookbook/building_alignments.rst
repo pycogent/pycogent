@@ -55,7 +55,7 @@ We first align without providing a guide tree. The ``TreeAlign`` algorithm build
              Variance        1e+11
     ------------------------------
     >>> aln
-    5 x 60 text alignment: NineBande[-C-----GCCA...], Mouse[GCAGTGAGCCA...], DogFaced[GCAAGGAGCCA...], ...
+    5 x 60 text alignment: Mouse[GCAGTGAGCCA...], NineBande[-C-----GCCA...], Human[GCAAGGAGCCA...], ...
 
 We then align using a guide tree (pre-estimated) and specifying the ratio of transitions to transversions (kappa).
 
@@ -121,13 +121,13 @@ We load an alignment of these protein sequences.
     >>> aligned_aa_seqs = [('hum', 'KQIQESSENGSLAARQERQAQVNLT'),
     ...                    ('mus', 'KQIQESGESGSLAARQERQAQVNLT'),
     ...                    ('rat', 'LNKQ------PLS---------NKK')]
-    >>> aligned_aa = LoadSeqs(data = aligned_aa_seqs, moltype = PROTEIN)
+    >>> aligned_aa = LoadSeqs(data=aligned_aa_seqs, moltype=PROTEIN)
 
 We then obtain an alignment of the DNA sequences from the alignment of their translation.
 
 .. doctest::
     
-    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA, aa_to_codons=True)
+    >>> aligned_DNA = aligned_aa.replaceSeqs(unaligned_DNA, aa_to_codon=True)
     >>> print aligned_DNA
     >hum
     AAGCAGATCCAGGAAAGCAGCGAGAATGGCAGCCTGGCCGCGCGCCAGGAGAGGCAGGCCCAGGTCAACCTCACT

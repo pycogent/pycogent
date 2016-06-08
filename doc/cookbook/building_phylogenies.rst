@@ -108,9 +108,9 @@ Phylogenetic Trees can be built by using the neighbour joining algorithm by prov
     >>> print njtree.asciiArt()
                         /-Rhesus
               /edge.1--|
-             |         |          /-HowlerMon
+             |         |          /-Galago
              |          \edge.0--|
-             |                    \-Galago
+             |                    \-HowlerMon
     -root----|
              |--Orangutan
              |
