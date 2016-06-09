@@ -22,7 +22,7 @@ The process for getting PubMed records by PubMed ID (PMID) is very similar to th
     >>> from cogent.db.ncbi import EFetch
     >>> ef = EFetch(id='17708774', db='pubmed', rettype='brief')
     >>> ef.read()
-    '\n1: Knight R et al. PyCogent: a toolkit for makin...[PMID: 17708774] \n'
+    '\n1. Genome Biol. 2007;8(8):R171.\n\nPyCogent: a toolkit...
 
 If you want more information, there are other rettypes, e.g.
 
@@ -30,7 +30,7 @@ If you want more information, there are other rettypes, e.g.
 
     >>> ef = EFetch(id='17708774', db='pubmed', rettype='citation')
     >>> ef.read()
-    "\n1: Genome Biol. 2007;8(8):R171. \n\nPyCogent: a toolkit for making sense from sequence.\n\nKnight R, Maxwell P, Birmingham A, Carnes J, Caporaso JG, Easton BC, Eaton M,\nHamady M, Lindsay H, Liu Z, Lozupone C, McDonald D, Robeson M, Sammut R, Smit S,\nWakefield MJ, Widmann J, Wikman S, Wilson S, Ying H, Huttley GA.\n\nDepartment of Chemistry and Biochemistry, University of Colorado, Boulder,\nColorado, USA. rob@spot.colorado.edu\n\nWe have implemented in Python the COmparative GENomic Toolkit, a fully\nintegrated and thoroughly tested framework for novel probabilistic analyses of\nbiological sequences, devising workflows, and generating publication quality\ngraphics. PyCogent includes connectors to remote databases, built-in generalized\nprobabilistic techniques for working with biological sequences, and controllers\nfor third-party applications. The toolkit takes advantage of parallel\narchitectures and runs on a range of hardware and operating systems, and is\navailable under the general public license from\nhttp://sourceforge.net/projects/pycogent.\n\nPublication Types:\n    Evaluation Studies\n    Research Support, N.I.H., Extramural\n    Research Support, Non-U.S. Gov't\n\nMeSH Terms:\n    Animals\n    BRCA1 Protein/genetics\n    Databases, Genetic\n    Genomics/methods*\n    Humans\n    Phylogeny\n    Protein Conformation\n    Proteobacteria/classification\n    Proteobacteria/genetics\n    Sequence Analysis/methods*\n    Software*\n    von Willebrand Factor/chemistry\n    von Willebrand Factor/genetics\n\nSubstances:\n    BRCA1 Protein\n    von Willebrand Factor\n\nPMID: 17708774 [PubMed - indexed for MEDLINE]\n"
+    '\n1. Genome Biol. 2007;8(8):R171.\n\nPyCogent: a toolkit for...
 
 Similarly, if you want something more machine-readable (but quite a lot less human-readable), you can specify XML in the retmode:
 
@@ -42,7 +42,7 @@ Similarly, if you want something more machine-readable (but quite a lot less hum
     ...     print line
     ... 
     <?xml version="1.0"?>
-    <!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2011//EN" "http://www.ncbi.nlm.nih.gov/entrez/query/DTD/pubmed_110101.dtd">
+    <!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2016//EN" "http://www.ncbi.nlm.nih.gov/corehtml/query/DTD/pubmed_160101.dtd">
     <PubmedArticleSet>
     <PubmedArticle>
         <MedlineCitation Owner="NLM" Status="MEDLINE">
@@ -63,10 +63,12 @@ Fortunately, the more general EUtils class allows this kind of complex workflow 
     >>> res = eu['PyCogent']
     >>> print res.read()
     <BLANKLINE>
-    1: Smit S et al. From knotted to nested RNA st...[PMID: 18230758] 
+    1. J Appl Crystallogr. 2011 Apr 1;44(Pt 2):424-428. Epub 2011 Feb 11.
     <BLANKLINE>
-    2: Knight R et al. PyCogent: a toolkit for makin...[PMID: 17708774] 
+    Abstractions, algorithms and data structures for structural bioinformatics in
+    PyCogent.
     <BLANKLINE>
+    Cieślik M, Derewenda ZS, Mura C...
 
 ...or perhaps you want only the ones with PyCogent in the title, in which case you can use any qualifier that NCBI supports:
 
@@ -75,8 +77,12 @@ Fortunately, the more general EUtils class allows this kind of complex workflow 
     >>> res = eu['PyCogent[ti]']
     >>> print res.read()
     <BLANKLINE>
-    1: Knight R et al. PyCogent: a toolkit for makin...[PMID: 17708774] 
+    1. J Appl Crystallogr. 2011 Apr 1;44(Pt 2):424-428. Epub 2011 Feb 11.
     <BLANKLINE>
+    Abstractions, algorithms and data structures for structural bioinformatics in
+    PyCogent.
+    <BLANKLINE>
+    Cieślik M, Derewenda ZS, Mura C...
 
 The NCBI-supported list of field qualifiers, and lots of documentation generally on how to do pubmed queries, is `here <http://www.ncbi.nlm.nih.gov/bookshelf/br.fcgi?book=helppubmed&part=pubmedhelp>`_.
 
@@ -87,6 +93,7 @@ One especially useful feature is the ability to get a list of primary identifier
     >>> eu = EUtils(db='pubmed', rettype='uilist')
     >>> res = eu['PyCogent']
     >>> print res.read()
+    22479120
     18230758
     17708774
     <BLANKLINE>
@@ -126,22 +133,9 @@ Similarly, if your id refers to a protein record, you can get that by setting th
 
     >>> genpept = EFetch(id='1234567,459567', rettype='gp').read()
 
-You'll probably notice that the lines look suspiciously like FASTA-format records. This is in fact true: the ``rettype`` parameter controls what type of record you get back. For example, if we do the same search with ``rettype='brief'``, we get.
-
-.. doctest::
-
-    >>> from cogent.db.ncbi import EFetch
-    >>> ef = EFetch(id='459567', rettype='brief')
-    >>> lines = ef.read().splitlines()
-    >>> for line in lines:
-    ...     print line
-    ... 
-    D28543 Hepatitis C virus... [gi:459567]
-
-
 The current ``rettypes`` (as of this writing on 4/14/2010) for the 'core' NCBI databases are native, fasta, gb, gp, gbwithparts, gbc, gpc, est, gss, seqid, acc, ft. Formerly, but not currently, 'genbank' was a synonym for 'gb' and 'genpept' was a synonym for 'gp': however, these synonyms no longer work and need to be fixed if you encounter them in old code. For more information check NCBI's `format documentation <http://www.ncbi.nlm.nih.gov/corehtml/query/static/efetchseq_help.html>`_.
 
-Note that there are two separate concepts: rettype and retmode. rettype controls what kind of data you'll get, and retmode controls how the data will be formatted.
+Note that there are two separate concepts: ``rettype`` and ``retmode``. rettype controls what kind of data you'll get, and retmode controls how the data will be formatted.
 
 For example:
 
@@ -165,13 +159,17 @@ For example:
     >>> for line in lines:
     ...     print line[:40]
     ... 
-    >gi|459567|dbj|D28543.1|HPCNS5PC Hepatit
-    GAGCACGACATCTACCAATGTTGCCAACTGAACCCAGAGG
-    GGCTTTACCTTGGTGGTCCCATGTTTAACTCGCGAGGTCA
-    CGGGGTTCTTCCAACCAGCATGGGCAATACCCTCACATGT
-    GCAGGCCTCACCAATTCTGACATGTTGGTTTGCGGAGATG
-    TC
-    <BLANKLINE>
+    Seq-entry ::= set {
+      level 1 ,
+      class nuc-prot ,
+      descr {
+        pub {
+          pub {
+            sub {
+              authors {
+                names
+                  std {
+                    {...
     >>> ef = EFetch(id='459567', rettype='fasta', retmode='xml')
     >>> lines = ef.read().splitlines()
     >>> for line in lines:
@@ -188,12 +186,9 @@ For example:
       <TSeq_orgname>Hepatitis C virus</TSeq_
       <TSeq_defline>Hepatitis C virus gene f
       <TSeq_length>282</TSeq_length>
-      <TSeq_sequence>GAGCACGACATCTACCAATGTTG
-    </TSeq>
-    <BLANKLINE>
-    </TSeqSet>
+      <TSeq_sequence>GAGCACGACATCTACCAATGTTG...
 
-You'll notice that the second case is some funny-looking html. Thanks, NCBI! This is not our fault, please don't file a bug report. To figure out whether something is actually surprising behavior at NCBI, you can always capture the command-line and run it in a web browser. You can do this by calling str() on the ``ef``, or by printing it. For example:
+You'll notice that the second case is some funny-looking html. Thanks, NCBI! This is not our fault, please don't file a bug report. To figure out whether something is actually surprising behavior at NCBI, you can always capture the command-line and run it in a web browser. You can do this by calling ``str()`` on the ``ef``, or by printing it. For example:
 
 .. doctest::
 
@@ -212,9 +207,19 @@ You can also select multiple ids (pass in as comma-delimited list):
 
 .. doctest::
 
-    >>> ef = EFetch(id='459567,459568', rettype='brief')
-    >>> ef.read()
-    'D28543 Hepatitis C virus... [gi:459567]\nBAA05896 NS5 protein [Hepa... [gi:459568]'
+    >>> ef = EFetch(id='459567,459568', rettype='summary', retmode='xml')
+    >>> print ef.read()
+    <?xml version="1.0"?>
+     <!DOCTYPE Bioseq-set PUBLIC "-//NCBI//NCBI Seqset/EN" "http://www.ncbi.nlm.nih.gov/dtd/NCBI_Seqset.dtd">
+     <Bioseq-set>
+     <Bioseq-set_seq-set>
+    <Seq-entry>
+      <Seq-entry_set>
+        <Bioseq-set>
+          <Bioseq-set_level>1</Bioseq-set_level>
+          <Bioseq-set_class value="nuc-prot"/>
+          <Bioseq-set_descr>...
+    
 
 Retrieving GenPept files from NCBI via Eutils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -231,6 +236,7 @@ We query for just one accession to illustrate the process. A more general query 
     DEFINITION  lysyl tRNA synthetase [Mesorhizobium loti MAFF303099].
     ACCESSION   BAB52044
     VERSION     BAB52044.1  GI:14025444
+    DBLINK      BioProject: PRJNA18
     DBSOURCE    accession BA000012.4
     KEYWORDS    .
     SOURCE      Mesorhizobium loti MAFF303099...
@@ -339,10 +345,12 @@ Retrieving PubMed abstracts from NCBI via EUtils
     >>> result = e['Simon Easteal AND Von Bing Yap'].read()
     >>> print result
     <BLANKLINE>
-    1: Yap VB et al. Estimates of the effect of na...[PMID: 19815689] 
+    1. Mol Biol Evol. 2010 Mar;27(3):726-34. doi: 10.1093/molbev/msp232. Epub 2009 Oct
+    8.
     <BLANKLINE>
-    2: Schranz HW et al. Pathological rate matrices: f...[PMID: 19099591] 
+    Estimates of the effect of natural selection on protein-coding content.
     <BLANKLINE>
+    Yap VB(1), Lindsay H, Easteal S, Huttley G...
 
 Retrieving PubMed abstracts via PMID
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
