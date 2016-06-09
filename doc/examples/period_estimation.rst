@@ -251,5 +251,5 @@ The rest is as per the analysis using ``Goertzel`` above.
     ...     
     >>> print stat
     104.35...
-    >>> p < 0.1
+    >>> p < 0.15
     True

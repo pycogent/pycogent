@@ -19,7 +19,7 @@ Retrieve a structure from PDB
     >>> pdb_file = p['4tsv']
     >>> pdb = pdb_file.read()
     >>> len(pdb)
-    135027
+    134136
 
 This example will retrieve the structure as a PDB file string.
 
