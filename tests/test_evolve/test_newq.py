@@ -10,7 +10,7 @@ from numpy import ones, dot, array
 from cogent import LoadSeqs, DNA, LoadTree, LoadTable
 from cogent.evolve.substitution_model import Nucleotide, General, \
                                                 GeneralStationary
-from cogent.evolve.discrete_markov import DiscreteSubstitutionModel
+from cogent.evolve.substitution_model import DiscreteSubstitutionModel
 from cogent.evolve.predicate import MotifChange
 from cogent.util.unit_test import TestCase, main
 from cogent.maths.matrix_exponentiation import PadeExponentiator as expm

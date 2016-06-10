@@ -16,9 +16,7 @@ from cogent.evolve.likelihood_function import LikelihoodFunction as _LF
 from cogent.recalculation.scope import _indexed
 from cogent.maths.stats.information_criteria import aic, bic
 
-
 from cogent.align.pairwise import AlignableSeq
-from cogent.util.warning import discontinued, deprecated
 
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
@@ -122,10 +120,6 @@ class _LikelihoodParameterController(_LF):
     def setMotifProbsFromData(self, align, locus=None, is_constant=None, 
                 include_ambiguity=False, is_independent=None, auto=False,
                 pseudocount=None, **kwargs):
-        if 'is_const' in kwargs:
-            is_constant = kwargs.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
         counts = self.model.countMotifs(align,
                 include_ambiguity=include_ambiguity)
         if is_constant is None:
@@ -142,10 +136,6 @@ class _LikelihoodParameterController(_LF):
     
     def setMotifProbs(self, motif_probs, locus=None, bin=None, is_constant=None, 
                 is_independent=None, auto=False, **kwargs):
-        if 'is_const' in kwargs:
-            is_constant = kwargs.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
         motif_probs = self.model.adaptMotifProbs(motif_probs, auto=auto)
         if is_constant is None:
             is_constant = not self.optimise_motif_probs
@@ -159,17 +149,8 @@ class _LikelihoodParameterController(_LF):
         assert expm in ['pade', 'either', 'eigen', 'checked'], expm
         self.setParamRule('expm', is_constant=True, value=expm)
 
-    def makeCalculator(self, *args, **kw):
-        if args:
-            discontinued('method', "makeCalculator(aligns)", '1.6')
-            # and shadowing a quite different superclass method.
-            self.setAlignment(*args)
-            if getattr(self, 'used_as_calculator', False):
-                warnings.warn('PC used as two different calculators', stacklevel=2)
-            self.used_as_calculator = True
-            return self
-        else:
-            return super(_LF, self).makeCalculator(**kw)
+    def makeCalculator(self, **kw):
+        return super(_LF, self).makeCalculator(**kw)
     
     def _process_scope_info(self, edge=None, tip_names=None, edges=None,
             is_clade=None, is_stem=None, outgroup_name=None):
@@ -227,10 +208,6 @@ class _LikelihoodParameterController(_LF):
                 common ancestor defined by the tip_names+outgroup_name
                 arguments.
         """
-        if 'is_const' in scope_info:
-            is_constant = scope_info.pop('is_const')
-            deprecated('argument', 'is_const', 'is_constant', 1.6)
-        
         par_name = str(par_name)
                 
         scopes = {}

@@ -1,33 +1,38 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 from os import getcwd, remove, rmdir, mkdir
+from os.path import splitext
 from cogent.util.unit_test import TestCase, main
 from cogent.util.misc import flatten
-from cogent.app.raxml import Raxml,raxml_alignment, build_tree_from_alignment
-from cogent.app.util import ApplicationError
+from random import randint
+from cogent.app.raxml_v730 import (Raxml,raxml_alignment,\
+                                   build_tree_from_alignment,\
+                                   insert_sequences_into_tree)
+from cogent.app.util import ApplicationError,get_tmp_filename
 from cogent.parse.phylip import get_align_for_phylip
 from cogent.core.tree import PhyloNode
-from cogent.core.moltype import RNA
+from cogent.core.moltype import RNA,DNA
 from StringIO import StringIO
 from cogent.util.misc import app_path
 from subprocess import Popen, PIPE, STDOUT
+from cogent.core.alignment import Alignment
+import re
+from random import choice, randint
 
 __author__ = "Micah Hamady"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
-__credits__ = ["Micah Hamady", "Rob Knight", "Daniel McDonald"]
+__credits__ = ["Micah Hamady", "Rob Knight", "Daniel McDonald","Jesse Stombaugh"]
 __license__ = "GPL"
 __version__ = "1.5.3-dev"
-__maintainer__ = "Micah Hamady"
-__email__ = "Micah Hamady"
-__status__ = "Development"
-
+__maintainer__ = "Jesse Stombaugh"
+__email__ = "jesse.stombaugh@colorado.edu"
+__status__ = "Production"
 
 class GenericRaxml(TestCase):
 
     def setUp(self):
-        
         """Check if Raxml version is supported for this test"""
-        acceptable_version = (7,0,3)
+        acceptable_version = (7,3,0)
         self.assertTrue(app_path('raxmlHPC'),
          "raxmlHPC not found. This may or may not be a problem depending on "+\
          "which components of QIIME you plan to use.")
@@ -75,11 +80,11 @@ class RaxmlTests(GenericRaxml):
         """raxml BaseCommand should return the correct BaseCommand"""
         r = Raxml()
         self.assertEqual(r.BaseCommand, \
-            ''.join(['cd \"',getcwd(),'/\"; ','raxmlHPC -e 0.1 -f d -c 50']))
+            ''.join(['cd \"',getcwd(),'/\"; ','raxmlHPC -f d -# 1']))
         r.Parameters['-s'].on('seq.nexus')
         self.assertEqual(r.BaseCommand,\
             ''.join(['cd \"',getcwd(),'/\"; ',\
-            'raxmlHPC -e 0.1 -f d -c 50 -s seq.nexus']))
+            'raxmlHPC -f d -s seq.nexus -# 1']))
 
 
     def test_raxml_params(self):
@@ -94,6 +99,7 @@ class RaxmlTests(GenericRaxml):
 
         # specify output name 
         r.Parameters['-n'].on("test_name")
+        r.Parameters["-p"].on(randint(1,100000))
         self.assertRaises(ApplicationError, r)
 
         # specify model 
@@ -119,6 +125,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on(self.test_fn1)
         r.Parameters['-m'].on("GTRCAT")
         r.Parameters['-n'].on("test_me")
+        r.Parameters["-p"].on(randint(1,100000))
        
         # test with abs filename
         cur_out = self.test_fn1
@@ -131,6 +138,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on(self.test_fn2)
         r.Parameters['-n'].on("test_me2")
         r.Parameters['-w'].on("/tmp/")
+        r.Parameters["-p"].on(randint(1,100000))
         self.writeTmp(self.test_fn1)
         out = r()
         out.cleanUp()
@@ -139,6 +147,7 @@ class RaxmlTests(GenericRaxml):
         r.Parameters['-s'].on("\"%s\"" % self.test_fn1_space)
         r.Parameters['-n'].on("test_me3")
         r.Parameters['-w'].on("/tmp/")
+        r.Parameters["-p"].on(randint(1,100000))
         #print r.BaseCommand
         self.writeTmp(self.test_fn1_space)
         out = r()
@@ -152,12 +161,56 @@ class RaxmlTests(GenericRaxml):
 
     def test_build_tree_from_alignment(self):
         """Builds a tree from an alignment"""
+        
         tree = build_tree_from_alignment(self.align1, RNA, False)
+        
         self.assertTrue(isinstance(tree, PhyloNode))
         self.assertEqual(len(tree.tips()), 7)
         self.assertRaises(NotImplementedError, build_tree_from_alignment, \
                           self.align1, RNA, True)
-   
+    
+    def test_insert_sequences_into_tree(self):
+        """Inserts sequences into Tree using params - test handles tree-insertion"""
+        
+        # generate temp filename for output
+        outfname=splitext(get_tmp_filename('/tmp/'))[0]
+        
+        # create starting tree
+        outtreefname=outfname+'.tre'
+        outtree=open(outtreefname,'w')
+        outtree.write(REF_TREE)
+        outtree.close()
+        
+        # set params for tree-insertion
+        params={}
+        params["-w"]="/tmp/"
+        params["-n"] = get_tmp_filename().split("/")[-1]
+        params["-f"] = 'v'
+        #params["-G"] = '0.25'
+        params["-t"] = outtreefname
+        params["-m"] = 'GTRGAMMA'
+        
+        aln_ref_query=get_align_for_phylip(StringIO(PHYLIP_FILE_DNA_REF_QUERY))
+        aln = Alignment(aln_ref_query)
+        seqs, align_map = aln.toPhylip()
+        
+        tree = insert_sequences_into_tree(seqs, DNA, params=params,
+                                          write_log=False)
+        
+        for node in tree.tips():
+            removed_query_str=re.sub('QUERY___','',str(node.Name))
+            new_node_name=re.sub('___\d+','',str(removed_query_str))
+            if new_node_name in align_map:
+                node.Name = align_map[new_node_name]
+
+        self.assertTrue(isinstance(tree, PhyloNode))
+        self.assertEqual(tree.getNewick(with_distances=True),RESULT_TREE)
+        self.assertEqual(len(tree.tips()), 7)
+        self.assertRaises(NotImplementedError, build_tree_from_alignment, \
+                         self.align1, RNA, True)
+                         
+        remove(outtreefname)
+
 PHYLIP_FILE= """ 7 50
 Species001   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
 Species002   UGCAUGUCAG UAUAGCUUUA GUGAAACUGC GAAUGGCUNN UUAAAUCAGU
@@ -167,6 +220,22 @@ Species005   NNNNNNNNNN UAUAUCUUAU GUGAAACUUC GAAUGCCUCA UUAAAUCAGU
 Species006   UGCAUGUCAG UAUAGCUUUG GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
 Species007   UGCAUGUCAG UAUAACUUUG GUGAAACUGC GAAUGGCUCA UUAAAUCAGU
 """ 
+
+
+PHYLIP_FILE_DNA_REF_QUERY= """ 7 50
+Species001   TGCATGTCAG TATAGCTTTA GTGAAACTGC GAATGGCTCA TTAAATCAGT
+Species002   TGCATGTCAG TATAGCTTTA GTGAAACTGC GAATGGCTNN TTAAATCAGT
+Species003   TGCATGTCAG TATAGCATTA GTGAAACTGC GAATGGCTCA TTAAATCAGT
+Species004   TCCATGTCAG TATAACTTTG GTGAAACTGC GAATGGCTCA TTAAATCAGG
+Species005   NNNNNNNNNN TATATCTTAT GTGAAACTTC GAATGCCTCA TTAAATCAGT
+Species006   TGCATGTCAG TATAGCTTTG GTGAAACTGC GAATGGCTCA TTAAATCAGT
+Species007   TGCATGTCAG TATAACTTTG GTGAAACTGC GAATGGCTCA TTAAATCAGT
+"""
+
+REF_TREE="""((seq0000004:0.08408,seq0000005:0.13713)0.609:0.00215,seq0000003:0.02032,(seq0000001:0.00014,seq0000002:0.00014)0.766:0.00015);
+"""
+
+RESULT_TREE="""(Species003:0.0194919169324,(Species001:4.34281710439e-07,Species002:4.34281710439e-07):4.34281710439e-07,(((Species006:0.0,Species007:0.0):0.0,Species004:0.0438017433031):0.0438017433031,Species005:0.171345128781):0.00331197405878);"""
 
 if __name__ == '__main__':
     main()

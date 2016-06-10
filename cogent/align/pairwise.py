@@ -23,7 +23,6 @@ from cogent import LoadSeqs
 from cogent.core.alignment import Aligned
 from cogent.align.traceback import map_traceback
 from cogent.util import parallel
-from cogent.util.warning import discontinued, deprecated
 
 
 from cogent.util.modules import importVersionedModule, ExpectedImportError
@@ -923,8 +922,6 @@ class PairHMM(object):
         return VP(self, result)
     
     def getViterbiScoreAndAlignment(self, ratio=None, posterior_probs=False, **kw):
-        #deprecated('method', 'getViterbiScoreAndAlignment', 
-        #        'getViterbiPath().getAlignment()', '1.8', stack_level=3)
         assert ratio in [None, 0.5], ratio
         vpath = self.getViterbiPath(**kw)
         result_tuple = (vpath.getScore(), vpath.getAlignment())
@@ -933,8 +930,6 @@ class PairHMM(object):
         return result_tuple
     
     def getLocalViterbiScoreAndAlignment(self, posterior_probs=False, **kw):
-        deprecated('method', 'getLocalViterbiScoreAndAlignment', 
-                'getViterbiScoreAndAlignment(local=True)', '1.7', stack_level=3)
         kw['posterior_probs'] = posterior_probs
         return self.getViterbiScoreAndAlignment(local=True, **kw)
 

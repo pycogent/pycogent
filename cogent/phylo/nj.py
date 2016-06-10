@@ -274,7 +274,6 @@ def nj(dists, no_negatives=True):
         - dists: dict of (name1, name2): distance
         - no_negatives: negative branch lengths will be set to 0
     """
-    assert no_negatives, "no_negatives=False is deprecated"
     (result,) = gnj(dists, keep=1)
     (score, tree) = result
     return tree

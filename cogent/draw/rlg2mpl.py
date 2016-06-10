@@ -13,8 +13,6 @@ import matplotlib.transforms
 import matplotlib.colors
 import numpy
 
-from cogent.util.warning import discontinued
-
 __author__ = "Peter Maxwell"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
@@ -185,10 +183,7 @@ class Drawable(object):
             kw['width'] = total_width / 72
         kw2 = {}
         for (k,v) in kw.items():
-            if k in ['wraps', 'border', 'withTrackLabelColumn']:
-                discontinued('argument', "%s" % k, '1.6')
-            else:
-                kw2[k] = v
+            kw2[k] = v
         kw2['format'] = 'pdf'
         if height:
             kw2['height'] = height / 72

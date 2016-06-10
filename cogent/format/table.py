@@ -7,7 +7,6 @@ Current formats include restructured text (keyed by 'rest'), latex, html,
 columns separated by a provided string, and a simple text format.
 """
 import textwrap
-from cogent.util.warning import discontinued
 
 __author__ = "Gavin Huttley"
 __copyright__ = "Copyright 2007-2012, The Cogent Project"
