@@ -324,10 +324,6 @@ Random
     [0 3 2 4 1]
     [4 0 1 2 3]
 
-Ordered
--------
-
-*To be written.*
 
 Differences in means
 ====================
@@ -427,10 +423,6 @@ This is essentially just a test using the binomial distribution where the probab
     >>> sign_test(40, 100)
     0.056...
 
-Differences in proportions
-==========================
-
-*To be written.*
 
 Association
 ===========
@@ -514,10 +506,6 @@ And finally, the residual error for each point from the linear regression
     >>> error
     ['-0.98', '0.44', '-0.41'...
 
-Differences in variances
-========================
-
-*To be written.*
 
 Chi-Squared test
 ================

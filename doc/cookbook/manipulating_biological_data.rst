@@ -34,7 +34,6 @@ Trees
 
     simple_trees
     phylonodes
-    managing_trees
 
 Tables
 ======

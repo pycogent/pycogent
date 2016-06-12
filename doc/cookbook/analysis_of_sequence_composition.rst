@@ -286,11 +286,6 @@ Caution regarding unnormalized distances
 
 Note that in this case we have already called ``du.normalize()`` on each ``DinucUsage`` object. You MUST call ``du.normalize()`` before calculating distances. Otherwise the distance calculated will be for the dinucleotide counts, rather than frequencies. Distances of counts can be non-zero even for sequences with identical dinucleotide usage, if those sequences are of different lengths.
 
-k-words
--------
-
-*To be written.*
-
 Codon usage analyses
 ====================
 
@@ -353,27 +348,3 @@ The RSCU or relative synonymous codon usage metric divides the frequency of each
     AUC 0.266666666667
     GUA 0.190476190476...
 
-PR2 bias
---------
-
-*To be written*
-
-Fingerprint analysis
---------------------
-
-*To be written*
-
-Amino Acid Usage
-================
-
-*To be written.*
-
-Profiles
-========
-
-*To be written.*
-
-Visualisation
-=============
-
-*To be written.*

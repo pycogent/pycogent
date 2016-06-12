@@ -630,15 +630,6 @@ We just show a series of spans.
     >>> fig = seq_display.makeFigure()
     >>> fig.savefig('annotated_3.png')
 
-Generic metadata
-^^^^^^^^^^^^^^^^
-
-*To be written.*
-
-Info object
-"""""""""""
-
-*To be written.*
 
 .. following cleans up files
 

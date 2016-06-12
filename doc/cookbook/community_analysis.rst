@@ -40,21 +40,6 @@ Finally, we can calculate the PD values for each environment in the tree
 
 ``PD_vals`` is a ``numpy`` ``array`` with the values representing each environment in envs.
 
-Rarefaction
--------------
-
-*To be written.*
-
-Parametric methods
-------------------
-
-*To be written.*
-
-Nonparametric methods
----------------------
-
-*To be written.*
-
 beta diversity
 ==============
 
@@ -165,9 +150,3 @@ We now have 3 samples, and the abundance of each column (e.g.: species) in that 
 
 this distance matrix can be visualized via multivariate reduction techniques such as :ref:`multivariate-analysis`.
 
-Taxonomy
-========
-
-*To be written.*
-
-.. need to decide on methods here

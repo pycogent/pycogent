@@ -205,9 +205,3 @@ The ``RichLabel`` objects have an ``Info`` object as an attribute, allowing spec
     10047092
      neuronal protein [Homo sapiens]
 
-Loading DNA sequences from a GenBank file
-"""""""""""""""""""""""""""""""""""""""""
-
-.. todo:: get sample data for this
-
-*To be written.*

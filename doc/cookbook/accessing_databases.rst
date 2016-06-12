@@ -361,28 +361,6 @@ Retrieving PubMed abstracts via PMID
     >>> e = EUtils(db='pubmed',rettype='abstract')
     >>> result = e['14983078'].read()
 
-KEGG
-====
-
-Complete genomes
-----------------
-
-*To be written.*
-
-Orthologs
----------
-
-*To be written.*
-
-Functional assignments
-----------------------
-
-*To be written.*
-
-Pathway assignments
--------------------
-
-*To be written.*
 
 Ensembl
 =======
@@ -404,24 +382,6 @@ The PDB module is very simple and basically gets a pdb coordinates file by acces
     >>> result = p['3L0U']
 
 returns a handle to a file containing the PDB coordinates (that you can, for example, pass to the PDB parser in a fashion analogous to how you pass the GenBank record above to the RichGenbankParser). See the pdb parser documentation for more info. To send results directly to a file, you can use the retrieve() method of the Pdb object.
-
-Rfam
-====
-
-For RNA secondary structures, alignments, functions
----------------------------------------------------
-
-*To be written.*
-
-GoldenPath (not yet implemented)
-================================
-
-*To be written.*
-
-Whole-genome alignments, orthologs, annotation tracks
------------------------------------------------------
-
-*To be written.*
 
 .. following cleans up files
 
