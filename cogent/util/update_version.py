@@ -7,7 +7,6 @@ All .py files descending from tests/ will be updated
 All .pyx and .h files descending from include/ will be updated
 docs/conf.py will be updated
 setup.py will be updated
-###cogent-requirements.txt will be updated### not being updated now
 """
 
 from optparse import make_option, OptionParser
@@ -60,9 +59,6 @@ class VersionUpdater(object):
             raise IOError, "Could not locate tests/__init__.py"
         if not os.access(path.join(self.DocDirectory, 'conf.py'), os.R_OK):
             raise IOError, "Could not locate doc/conf.py"
-        if not os.access(path.join(self.IncludesDirectory, \
-                'array_interface.h'), os.R_OK):
-            raise IOError, "Cound not locate include/array_interface.h"
 
     def _get_base_files(self):
         """Support method, provides relative locations for files in base dir"""
