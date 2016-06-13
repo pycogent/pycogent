@@ -16,6 +16,13 @@ try:
             (1, 0), "only matrix exponentiating DNA models")
 except ExpectedImportError:
     _solved_models = None
+
+__author__ = "Peter Maxwell"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__credits__ = ["Peter Maxwell"]
+__license__ = "GPL"
+__version__ = "1.5.3-dev"
+
  
 class PredefinedNucleotide(Nucleotide):
     _default_expm_setting = None
