@@ -155,4 +155,7 @@ setup(
     ]),
     include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,
+    extras_require={"mysql": ["PyMySQL", "sqlalchemy"],
+                    "mpi": ["mpi4py"],
+                    "all": ["PyMySQL", "sqlalchemy", "matplotlib", "mpi4py"]},
 )
