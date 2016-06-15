@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from distutils.core import setup, Command
-from distutils.extension import Extension
+from setuptools import setup, Command
+from setuptools.extension import Extension
 import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
