@@ -17,10 +17,10 @@ from cogent.util.transform import make_trans
 from cogent.struct.rna2d   import Pairs,ViennaStructure
 
 __author__ = "Shandy Wikman"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __contributors__ = ["Shandy Wikman"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Shandy Wikman"
 __email__ = "ens01svn@cs.umu.se"
 __status__ = "Development"

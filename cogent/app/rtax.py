@@ -7,10 +7,10 @@ Modified from uclust.py and rdp_classifier.py on 12-27-11
 """
 
 __author__ = "David Soergel"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["David Soergel", "William Walters", "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "David Soergel"
 __email__ = "soergel@cs.umass.edu"
 __status__ = "Production"

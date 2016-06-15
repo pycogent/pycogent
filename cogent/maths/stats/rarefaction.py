@@ -6,10 +6,10 @@ from random import Random, _ceil, _log
 """Given array of objects (counts or indices), perform rarefaction analyses."""
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Development"

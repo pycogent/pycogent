@@ -16,10 +16,10 @@ from cogent.parse.record_finder import DelimitedRecordFinder, never_ignore
 from string import strip
 
 __author__ = "Mike Robeson"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Mike Robeson", "Rob Knight", "Zongzhi Liu"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Mike Robeson"
 __email__ = "mike.robeson@colorado.edu"
 __status__ = "Production"

@@ -7,13 +7,13 @@ import doctest, cogent.util.unit_test as unittest, sys, os
 from cogent.util.misc import app_path
 
 __author__ = "Peter Maxwell and Gavin Huttley"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell", "Gavin Huttley", "Rob Knight",
                     "Hau Ying", "Helen Lindsay", "Jeremy Widmann",
                     "Sandra Smit", "Greg Caporaso", "Matthew Wakefield",
                 "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

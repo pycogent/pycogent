@@ -11,10 +11,10 @@ Modified from cogent.app.cd_hit.py on 1-21-10, written by Daniel McDonald.
 """
 
 __author__ = "William Walters"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["William Walters","Greg Caporaso","Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "William Walters"
 __email__ = "william.a.walters@colorado.edu"
 __status__ = "Production"

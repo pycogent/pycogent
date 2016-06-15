@@ -11,11 +11,11 @@ __all__ = ['alignment', 'clustal', 'fasta', 'mage', 'motif', 'nexus',
            'table', 'text_tree', 'xyzrn']
 
 __author__ = ""
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann", "Gavin Huttley", "Matthew Wakefield",
                "Rob Knight", "Sandra Smit", "Peter Maxwell", "Marcin Cieslik"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"

@@ -7,10 +7,10 @@ from cogent.app.cd_hit import CD_HIT, CD_HIT_EST, cdhit_from_seqs, \
         cdhit_clusters_from_seqs, clean_cluster_seq_id, parse_cdhit_clstr_file
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Daniel McDonald"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Development"

@@ -8,10 +8,10 @@ from cogent.core.sequence import RnaSequence, Sequence, ModelSequence
 from cogent.core.alignment import Alignment, DenseAlignment
 
 __author__ = "Sandra Smit"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Sandra Smit", "Gavin Huttley"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Sandra Smit"
 __email__ = "sandra.smit@colorado.edu"
 __status__ = "Production"

@@ -28,10 +28,10 @@ import itertools
 from cogent.util import parallel, terminal
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 
 try:
     curses_terminal = terminal.CursesOutput()

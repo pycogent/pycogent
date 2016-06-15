@@ -12,12 +12,12 @@ from cogent.core.tree import PhyloNode
 from cogent.parse.fasta import MinimalFastaParser
 
 __author__ = "Rob Knight"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Micah Hamady", "Zongzhi Liu", "Mike Robeson",
                "Catherine Lozupone", "Rob Knight", "Daniel McDonald",
                "Jeremy Widmann", "Jai Ram Rideout"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Micah Hamady"
 __email__ = "hamady@colorado.edu"
 __status__ = "Prototype"

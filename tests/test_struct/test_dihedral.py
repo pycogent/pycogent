@@ -8,11 +8,11 @@
 """
 
 __author__ = "Kristian Rother"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __contributors__ = ["Kristian Rother", "Sandra Smit"]
 __credits__ = ["Janusz Bujnicki", "Nils Goldmann"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Kristian Rother"
 __email__ = "krother@rubor.de"
 __status__ = "Production"

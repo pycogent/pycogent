@@ -2,30 +2,13 @@
 Changelog
 *********
 
-Cogent 1.5.3-dev (changes since 1.5.3 go here)
-==============================================
+Cogent 1.5.3 - 1.9
+==================
 
-New Features
-------------
-
-* Added app controller for cdbfasta/cdbyank
-* Added new optional argument none_on_zero_variance to
-  cogent.maths.stats.test.t_two_sample and
-  cogent.maths.stats.test.t_one_observation that is True by default to not
-  modify the previous behavior or change the interface of the two functions.
-
-Changes
--------
-
-Bug Fixes
----------
-
-* Fixed bug in cogent.maths.stats.test.t_two_sample that returned a t-statistic
-  with the wrong sign if the first distribution contained multiple values and
-  the second distribution contained only a single value.
-* cogent.maths.stats.test.mc_t_two_sample now handles distributions (as well as
-  permuted distributions) without variance (in the past it would crash with an
-  uninformative error message in these cases).
+NOTE: There have been so many changes since the 1.5.3 release that it is not
+viable to list themn all! Suffice it to say, many new features added and many bugs
+have been squashed. The best way to see them is using either git or mercurial
+to examine the commit logs.
 
 Cogent 1.5.2 - 1.5.3
 ====================

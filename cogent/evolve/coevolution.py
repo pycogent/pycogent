@@ -82,11 +82,11 @@ from cogent.util.recode_alignment import recode_dense_alignment, \
 from cogent.evolve.substitution_model import EmpiricalProteinMatrix
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Greg Caporaso", "Gavin Huttley", "Brett Easton",\
   "Sandra Smit", "Rob Knight"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 __status__ = "Beta"    

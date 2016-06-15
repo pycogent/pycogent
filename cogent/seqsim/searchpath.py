@@ -40,10 +40,10 @@ from random import shuffle
 from cogent.util.misc import toString, makeNonnegInt
 
 __author__ = "Amanda Birmingham"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Amanda Birmingham"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Amanda Birmingham"
 __email__ = "amanda.birmingham@thermofisher.com"
 __status__ = "Production"

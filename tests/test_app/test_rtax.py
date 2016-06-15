@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 __author__ = "David Soergel"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["David Soergel"] #remember to add yourself
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "David Soergel"
 __email__ = "soergel@cs.umass.edu"
 __status__ = "Production"

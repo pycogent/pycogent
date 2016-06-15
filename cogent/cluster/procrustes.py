@@ -11,10 +11,10 @@ from numpy import array, sqrt, sum, zeros, trace, dot, transpose,\
 from numpy import append as numpy_append
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Justin Kuczynski"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 __status__ = "Production"

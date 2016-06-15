@@ -2,10 +2,10 @@
 """Application controller for pplacer 1.1"""
 
 __author__ = "Kyle Bittinger"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Kyle Bittinger","Jesse Stombaugh"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Kyle Bittinger"
 __email__ = "kylebittinger@gmail.com"
 __status__ = "Production"

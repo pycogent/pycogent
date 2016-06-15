@@ -8,10 +8,10 @@ from cogent.db.ensembl.assembly import CoordSystem, Coordinate, get_coord_conver
 from cogent.db.ensembl.feature_level import FeatureCoordLevels
 
 __author__ = "Gavin Huttley, Hua Ying"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Gavin Huttley", "hua Ying"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Gavin Huttley"
 __email__ = "Gavin.Huttley@anu.edu.au"
 __status__ = "alpha"

@@ -13,10 +13,10 @@ from cogent.format.table import phylipMatrix
 from cogent.parse.dotur import OtuListParser
 
 __author__ = "Jeremy Widmann"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Jeremy Widmann"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "Jeremy Widmann"
 __email__ = "jeremy.widmann@colorado.edu"
 __status__ = "Development"

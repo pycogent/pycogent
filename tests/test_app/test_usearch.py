@@ -5,12 +5,12 @@ provides unit tests for the usearch.py module
 """
 
 __author__ = "William Walters"
-__copyright__ = "Copyright 2007-2012, The Cogent Project"
+__copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["William Walters", 
                "Jose Carlos Clemente Litran",
                "Greg Caporaso"]
 __license__ = "GPL"
-__version__ = "1.5.3-dev"
+__version__ = "1.9"
 __maintainer__ = "William Walters"
 __email__ = "william.a.walters@colorado.edu"
 __status__ = "Production"
