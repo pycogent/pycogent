@@ -77,12 +77,6 @@ Giving a set of values for ``x`` and ``y`` fit a function ``func`` that has ``n_
     >>> params
     array([ 2.0399641 ,  4.96112469])
 
-
-Miscellaneous functions
-=======================
-
-.. index:: cogent.util.misc
-
 Identity testing
 ^^^^^^^^^^^^^^^^
 
