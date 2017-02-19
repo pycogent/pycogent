@@ -128,11 +128,11 @@ def maximise(f, xinit, bounds=None, local=None, filename=None, interval=None,
         x = numpy.atleast_1d(x)
     
     if bounds is not None:
-        (upper, lower) = bounds
+        (lower, upper) = bounds
         if upper is not None or lower is not None:
             if upper is None: upper = numpy.inf
             if lower is None: lower = -numpy.inf
-            f = bounded_function(f, upper, lower)
+            f = bounded_function(f, lower, upper)
     try:
         fval = f(x)
     except (ArithmeticError, ParameterOutOfBoundsError), detail:
