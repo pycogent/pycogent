@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup, Command
 from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext as _build_ext
 import sys, os, re, subprocess
 
 __author__ = "Peter Maxwell"
@@ -18,27 +19,16 @@ if sys.version_info < (2, 6):
     py_version = ".".join([str(n) for n in sys.version_info])
     raise RuntimeError("Python-2.6 or greater is required, Python-%s used." % py_version)
 
-
-# Check Numpy version, no point installing if unsupported version inplace
-try:
-    import numpy
-except ImportError:
-    raise RuntimeError("Numpy required but not found.")
-
-numpy_version = re.split("[^\d]", numpy.__version__)
-numpy_version_info = tuple([int(i) for i in numpy_version if i.isdigit()])
-if numpy_version_info < (1, 3):
-    raise RuntimeError("Numpy-1.3 is required, %s found." % numpy_version)
-
-# Find arrayobject.h on any system
-numpy_include_dir = numpy.get_include()
-
-
 # On windows with no commandline probably means we want to build an installer.
 if sys.platform == "win32" and len(sys.argv) < 2:
     sys.argv[1:] = ["bdist_wininst"]
 
-
+class build_ext(_build_ext):
+    def finalize_options(self):
+        _build_ext.finalize_options(self)
+        __builtins__.__NUMPY_SETUP__ = False
+        import numpy
+        self.include_dirs.append(numpy.get_include())
 # A new command for predist, ie: pyrexc but no compile.
 class NullCommand(Command):
     description = "Generate .c files from .pyx files"
@@ -50,7 +40,7 @@ class NullCommand(Command):
         pass
     def run (self):
         pass
-        
+
 class BuildDocumentation(NullCommand):
     description = "Generate HTML documentation and .c files"
     def run (self):
@@ -69,6 +59,7 @@ class BuildDocumentation(NullCommand):
 # Cython is now run via the Cythonize function rather than monkeypatched into 
 # distutils, so these legacy commands don't need to do anything extra.
 extra_commands = {
+    'build_ext':build_ext,
     'pyrexc': NullCommand,
     'cython': NullCommand,
     'predist': BuildDocumentation}
@@ -122,6 +113,8 @@ setup(
     long_description=long_description,
     platforms=["any"],
     license=["GPL"],
+    setup_requires=["numpy>=1.3.0"],
+    install_requires=["numpy>=1.3.0"],
     keywords=["biology", "genomics", "statistics", "phylogeny", "evolution",
                 "bioinformatics"],
     classifiers=[
@@ -153,7 +146,6 @@ setup(
         CythonExtension("cogent.maths._period"),
         CythonExtension("cogent.maths.spatial.ckd3"),
     ]),
-    include_dirs = [numpy_include_dir],
     cmdclass = extra_commands,
     extras_require={"mysql": ["PyMySQL", "sqlalchemy"],
                     "mpi": ["mpi4py"],
