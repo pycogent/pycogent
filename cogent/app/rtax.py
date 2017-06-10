@@ -209,6 +209,16 @@ def assign_taxonomy(dataPath, reference_sequences_fp, id_to_taxonomy_fp, read_1_
             else:
                 read_1_id = extract.group(1)
                 amplicon_id = extract.group(2)
+                
+                try:
+                    previous_read_1_id = amplicon_to_read_1_id[amplicon_id] # see if there is already a value
+                    # if there was one, that's a problem!
+                    stderr.write("Mapped multiple read-1's from the same amplicon_id: " + amplicon_id + " -> {" + previous_read_1_id + ", " + read_1_id + "} in file " + read_1_seqs_fp + "\n")
+                    stderr.write("    (Most likely your amplicon_id_regex, " + amplicon_id_regex + ", needs to be adjusted such that the captured groups are unique.")
+                except KeyError:
+                    # good, there should have been no hit
+                    pass
+                
                 try:
                     amplicon_to_read_1_id[amplicon_id] = read_1_id
                     bogus = read_1_id_to_orig_id[read_1_id]  # verify that the id is valid
