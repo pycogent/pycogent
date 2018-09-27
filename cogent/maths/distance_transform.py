@@ -1,40 +1,40 @@
 #!/usr/bin/env python
 """ matrix based distance metrics, and related coordinate transforms
-     
+
 functions to compute distance matrices row by row from abundance matrices,
 typically samples (rows) vs. species/OTU's (cols)
 
 DISTANCE FUNCTIONS
-For distance functions, the API resembles the following (but see function 
+For distance functions, the API resembles the following (but see function
 docstring for specifics):
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros *typically* returns 0 distance between them
     * negative values are only allowed for some distance metrics,
-    in these cases if strict==True, negative input values return a ValueError, 
+    in these cases if strict==True, negative input values return a ValueError,
     and if strict==False, errors or misleading return values may result
     * functions prefaced with "binary" consider only presense/absense in
     input data (qualitative rather than quantitative)
 
 TRANSFORM FUNCTIONS
 * For transform functions, very little error checking exists.  0/0 evals
-in transform fomulas will throw errors, and negative data will return 
+in transform fomulas will throw errors, and negative data will return
 spurious results or throw errors
 * The transform functions are as described in
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
 These and allow the use
-of ordination methods such as PCA and RDA, which are Euclidean-based, 
+of ordination methods such as PCA and RDA, which are Euclidean-based,
 for the analysis of community data, while circumventing the problems associated
 with the Euclidean distance. The matrix that is returned still has samples as
 rows and species as columns, but the values are transformed so that when
 programs such as PCA calculate euclidean distances on the matrix, chord,
 chisquare, 'species profile', or hellinger distances will result.
 
-EXAMPLE USAGE: 
+EXAMPLE USAGE:
     >from distance_transform import dist_euclidean
     >from numpy import array
 
@@ -45,17 +45,17 @@ EXAMPLE USAGE:
     >dists = dist_euclidean(abundance_data)
 
     >print dists
-    
+
     array([[  0.        ,   4.12310563,  19.02130385],
            [  4.12310563,   0.        ,  20.5915031 ],
            [ 19.02130385,  20.5915031 ,   0.        ]])
 
-    
+
 """
 from __future__ import division
 import numpy
 from numpy import (array, zeros, logical_and, logical_or, logical_xor, where,
-    mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs, 
+    mean, std, argsort, take, ravel, logical_not, shape, sqrt, abs,
     sum, square, asmatrix, asarray, multiply, min, any, all, isfinite,
     nonzero, nan_to_num, geterr, seterr, isnan)
 
@@ -65,7 +65,7 @@ except ImportError:
     from numpy import rank
 
 # any, all from numpy override built in any, all, preventing:
-# ValueError: The truth value of an array with more than one element is 
+# ValueError: The truth value of an array with more than one element is
 # ambiguous. Use a.any() or a.all()
 
 from numpy.linalg import norm
@@ -73,7 +73,7 @@ from numpy.linalg import norm
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2007-2016, The Cogent Project"
 __credits__ = ["Rob Knight", "Micah Hamady", "Justin Kuczynski",
-                    "Zongzhi Liu", "Catherine Lozupone", 
+                    "Zongzhi Liu", "Catherine Lozupone",
                     "Antonio Gonzalez Pena", "Greg Caporaso"]
 __license__ = "GPL"
 __version__ = "1.9"
@@ -82,7 +82,7 @@ __email__ = "justinak@gmail.com"
 __status__ = "Prototype"
 
 def _rankdata(a):
-    """ Ranks the data in a, dealing with ties appropritely.  First ravels 
+    """ Ranks the data in a, dealing with ties appropritely.  First ravels
     a.  Adapted from Gary Perlman's |Stat ranksort.
     private helper function
 
@@ -122,7 +122,7 @@ def trans_chisq(m):
     """perform a chi squared distance transformation on the rows of m
 
     transforms m to m' so that the euclidean dist between the rows of m' equals
-    the chi squared dist between the rows of m.    
+    the chi squared dist between the rows of m.
     Ref:
     Legendre, P. and E. Gallagher. 2001.  Ecologically meaningful
     transformations for ordination of species data.  Oecologia: 129: 271-280.
@@ -166,23 +166,23 @@ def trans_hellinger(m):
 
 def dist_bray_curtis(datamtx, strict=True):
     """ returns bray curtis distance (normalized manhattan distance) btw rows
-    
+
     dist(a,b) = manhattan distance / sum on i( (a_i + b_i) )
-    
+
     see for example:
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
     Vegitatio
 
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -210,7 +210,7 @@ def dist_bray_curtis(datamtx, strict=True):
             r2 = datamtx[j,:]
             abs_v = float(sum(abs(r1 - r2)))
             v = sum(r1 + r2)
-            cur_d = 0.0 
+            cur_d = 0.0
             if v > 0:
                 cur_d = abs_v/v
 
@@ -221,22 +221,22 @@ dist_bray_curtis_faith = dist_bray_curtis
 
 def dist_bray_curtis_magurran(datamtx, strict=True):
     """ returns bray curtis distance (quantitative sorensen) btw rows
-    
+
     dist(a,b) = 2*sum on i( min( a_i, b_i)) / sum on i( (a_i + b_i) )
-    
+
     see for example:
     Magurran 2004
     Bray 1957
 
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -274,22 +274,22 @@ def dist_bray_curtis_magurran(datamtx, strict=True):
     return dists
 
 def dist_canberra(datamtx, strict=True):
-    """returns a row-row canberra dist matrix
-    
+    """returns a row-row canberra dist matrix in Adkins form
+
     see for example:
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
     Vegitatio
 
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     * chisq dist normalizes by column sums - empty columns (all zeros) are
@@ -320,10 +320,10 @@ def dist_canberra(datamtx, strict=True):
             dist = 0.0
             net = abs( r1 - r2 ) / (r1 + r2)
 
+            num_nonzeros = ((r1 + r2) > 0).sum()
             net = nan_to_num(net)
-            num_nonzeros = nonzero(net)[0].size
             dists[i,j] = dists[j,i] = nan_to_num(net.sum()/num_nonzeros)
-            
+
     seterr(**oldstate)
     return dists
 
@@ -334,9 +334,9 @@ def dist_chisq(datamtx, strict=True):
     Faith et al. 1987
     Compositional dissimilarity as a robust measure of ecological distance
     Vegitatio
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -344,7 +344,7 @@ def dist_chisq(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     * chisq dist normalizes by column sums - empty columns (all zeros) are
@@ -394,18 +394,18 @@ def dist_chord(datamtx, strict=True):
     """returns a row-row chord dist matrix
 
     attributed to Orloci (with accent).  see Legendre 2001,
-    ecologically meaningful... 
-    
+    ecologically meaningful...
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * an all zero row compared with a not all zero row returns a distance of 1
-    * if strict==True, raises ValueError if any of the input data is 
+    * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a 2d matrix.  
+    * if strict==False, assumes input data is a 2d matrix.
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -442,16 +442,16 @@ def dist_chord(datamtx, strict=True):
 
 def dist_euclidean(datamtx, strict=True):
     """returns a row by row euclidean dist matrix
-    
+
     returns the euclidean norm of row1 - row2 for all rows in datamtx
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
-    * if strict==True, raises ValueError if any of the input data is 
+    * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a 2d matrix.  
+    * if strict==False, assumes input data is a 2d matrix.
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -482,23 +482,23 @@ def dist_euclidean(datamtx, strict=True):
 
 def dist_gower(datamtx, strict=True):
     """returns a row-row gower dist matrix
-    
+
     see for example, Faith et al., 1987
-    
-    
+
+
     * note that the comparison between any two rows is dependent on the entire
     data matrix, d_ij is a fn of all of datamtx, not just i,j
     * comparisons are between rows (samples)
     * any column containing identical data for all rows is ignored (this
     prevents a 0/0 error in the formula for gower distance
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a 2d matrix.  
+    * if strict==False, assumes input data is a 2d matrix.
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -534,9 +534,9 @@ def dist_gower(datamtx, strict=True):
 
 def dist_hellinger(datamtx, strict=True):
     """returns a row-row hellinger dist matrix
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -544,7 +544,7 @@ def dist_hellinger(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -583,13 +583,13 @@ def dist_hellinger(datamtx, strict=True):
 
 def dist_kulczynski(datamtx, strict=True):
     """ calculates the kulczynski distances between rows of a matrix
-    
+
     see for example Faith et al., composiitonal dissimilarity, 1987
     returns a distance of 1 between a row of zeros and a row with at least one
     nonzero element
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -597,7 +597,7 @@ def dist_kulczynski(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -642,15 +642,15 @@ def dist_manhattan(datamtx, strict=True):
 
     dist(a,b) = sum on i( abs(a_i - b_i) )
     negative values ok (but not tested)
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * if strict==True, raises ValueError if any of the input data is
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a 2d matrix.  
+    * if strict==False, assumes input data is a 2d matrix.
     If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -673,7 +673,7 @@ def dist_manhattan(datamtx, strict=True):
         r1 = datamtx[i] # cache here
         for j in range(i):
             dists[i,j] = dists[j,i] = sum(abs(r1 - datamtx[j]))
-            
+
     return dists
 
 def dist_abund_jaccard(datamtx, strict=True):
@@ -688,9 +688,9 @@ def dist_abund_jaccard(datamtx, strict=True):
     V = sum of relative abundances of shared species in b
 
     The Chao-Jaccard distance is 1 - J_abd
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -698,7 +698,7 @@ def dist_abund_jaccard(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -719,7 +719,7 @@ def dist_abund_jaccard(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1, dtype='float')
 
     for i in range(numrows):
@@ -753,9 +753,9 @@ def dist_morisita_horn(datamtx, strict=True):
     dist(a,b) = 1 - 2*sum(a_i * b_i) /( (d_a + d_b)* N_a * N_b )
 
     see book: magurran 2004 pg 246
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -763,7 +763,7 @@ def dist_morisita_horn(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -784,10 +784,10 @@ def dist_morisita_horn(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1, dtype='float')
     row_ds = (datamtx**2).sum(axis=1, dtype='float') # these are d_a, etc
-    
+
     for i in range(numrows):
         if row_ds[i] !=0.:
             row_ds[i] = row_ds[i] / rowsums[i]**2
@@ -815,19 +815,19 @@ def dist_morisita_horn(datamtx, strict=True):
 def dist_pearson(datamtx, strict=True):
     """ Calculates pearson distance (1-r) between rows
 
-    
+
     note that the literature sometimer refers to the pearson dissimilarity
     as (1 - r)/2 (e.g.: BC Blaxall et al. 2003: Differential Myocardial Gene
     Expression in the Development and Rescue of Murine Heart Failure)
-    
-    for pearson's r, see for example: Thirteen Ways to Look at the 
+
+    for pearson's r, see for example: Thirteen Ways to Look at the
     Correlation Coefficient by J rodgers, 1988
 
-    * distance varies between 0-2, inclusive.  
+    * distance varies between 0-2, inclusive.
     * Flat rows (all elements itentical) will return a distance of 1 relative
     to any non-flat row, and a distance of zero to another flat row
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -879,27 +879,27 @@ def dist_pearson(datamtx, strict=True):
             else:
                 bottom = sqrt(sum1 * sum2)
                 r = top/bottom
-                
+
             dists[i][j] = dists[j][i] = 1.0 - r
-            
+
     return dists
 
 def dist_soergel(datamtx, strict=True):
     """ Calculate soergel distance between rows of a matrix
-    
+
     see for example Evaluation of Distance Metrics..., Fechner 2004
     dist(a,b) = sum on i( abs(a_i - b_i) ) / sum on i( max(a_i, b_i) )
-    
+
     returns: a symmetric distance matrix, numrows X numrows
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -935,16 +935,16 @@ def dist_soergel(datamtx, strict=True):
 
 def dist_spearman_approx(datamtx, strict=True):
     """ Calculate spearman rank distance (1-r) using an approximation formula
-    
-    considers only rank order of elements in a row, averaging ties 
+
+    considers only rank order of elements in a row, averaging ties
     [19.2, 2.1, 0.03, 2.1] -> [3, 1.5, 0, 1.5]
     then performs dist(a,b) = 6 * sum(D^2) / (N*(N^2 - 1))
     where D is difference in rank of element i between row a and row b,
     N is the length of either row
-    
+
     * formula fails for < 2 columns, returns a zeros matrix
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -972,10 +972,10 @@ def dist_spearman_approx(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     if numcols < 2:
         return dists # formula fails for < 2 elements per row
-    
+
     for i in range(numrows):
         r1 = datamtx[i,:]
         rank1 = _rankdata(r1)
@@ -985,15 +985,15 @@ def dist_spearman_approx(datamtx, strict=True):
             rankdiff = rank1 - rank2
             dsqsum = sum((rankdiff)**2)
             dist = 6*dsqsum / float(numcols*(numcols**2-1))
-            
+
             dists[i][j] = dists[j][i] = dist
     return dists
 
 def dist_specprof(datamtx, strict=True):
     """returns a row-row species profile distance matrix
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -1001,7 +1001,7 @@ def dist_specprof(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -1040,11 +1040,11 @@ def dist_specprof(datamtx, strict=True):
 
 def binary_dist_otu_gain(otumtx):
     """ Calculates number of new OTUs observed in sample A wrt sample B
-    
-        This is an non-phylogenetic distance matrix analagous to unifrac_g. 
+
+        This is an non-phylogenetic distance matrix analagous to unifrac_g.
         The number of OTUs gained in each sample is computed with respect to
         each other sample.
-    
+
     """
     result = []
     for i in otumtx:
@@ -1094,14 +1094,14 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
     Dice dist = 1 - (2*c)/(a + b).
     also known as whittaker:
     whittaker = (a + b - c)/( 0.5*(a+b) ) - 1
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
-    * negative input values are not allowed - will return nonsensical results 
+    * negative input values are not allowed - will return nonsensical results
     and/or throw errors
     """
     datamtx = datamtx.astype(bool)
@@ -1124,7 +1124,7 @@ def binary_dist_sorensen_dice(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         row1 = datamtx[i]
         for j in range(i):
@@ -1148,26 +1148,26 @@ def binary_dist_euclidean(datamtx, strict=True):
 def binary_dist_hamming(datamtx, strict=True):
     """Calculates hamming distance btw rows, returning distance matrix.
 
-    Note: Treats array as bool. 
+    Note: Treats array as bool.
     see for example wikipedia hamming_distance, 20 jan 2008
 
     hamming is identical to binary manhattan distance
 
-    Binary hamming: 
+    Binary hamming:
     a = num 1's in a
     b = num 1's in b
     c = num that are 1's in both a and b
     hamm = a + b - 2c
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -1191,7 +1191,7 @@ def binary_dist_hamming(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         first = datamtx[i]
         a = rowsums[i]
@@ -1202,12 +1202,12 @@ def binary_dist_hamming(datamtx, strict=True):
             dist = a + b - (2.0*c)
             dists[i][j] = dists[j][i] = dist
     return dists
-    
+
 def binary_dist_jaccard(datamtx, strict=True):
     """Calculates jaccard distance between rows, returns distance matrix.
 
     converts matrix to boolean.  jaccard dist = 1 - jaccard index
-    
+
     see for example: wikipedia jaccard index (20 jan 2009)
     this is identical to a binary version of the soergel distance
 
@@ -1216,16 +1216,16 @@ def binary_dist_jaccard(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     jaccard = 1 - (c/(a+b-c))
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -1248,7 +1248,7 @@ def binary_dist_jaccard(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
         first = datamtx[i]
@@ -1269,7 +1269,7 @@ def binary_dist_lennon(datamtx, strict=True):
 
     converts matrix to boolean.  jaccard dist = 1 - lennon similarity
     lennon's similarity is a modification of simpson's index
-    see Jack J.  Lennon, The geographical structure of British bird 
+    see Jack J.  Lennon, The geographical structure of British bird
     distributions: diversity, spatial turnover and scale
 
     Binary lennon:
@@ -1277,16 +1277,16 @@ def binary_dist_lennon(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     lennon = 1 - (c/(c + min(a-c,b-c)))
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
     * two rows of all zeros returns 0 distance between them
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -1309,7 +1309,7 @@ def binary_dist_lennon(datamtx, strict=True):
     if numrows == 0 or numcols == 0:
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
-    
+
     rowsums = datamtx.sum(axis=1)
     for i in range(numrows):
         first = datamtx[i]
@@ -1330,7 +1330,7 @@ def binary_dist_lennon(datamtx, strict=True):
 def binary_dist_ochiai(datamtx, strict=True):
     """Calculates ochiai distance btw rows, returning distance matrix.
 
-    Note: Treats array as bool. 
+    Note: Treats array as bool.
     see for example:
     On the Mathematical Significance of the Similarity Index of Ochiai...
     Bolton, 1991
@@ -1339,9 +1339,9 @@ def binary_dist_ochiai(datamtx, strict=True):
     b = num 1's in b
     c = num that are 1's in both a and b
     ochiai = 1 - (c/sqrt(a*b))
-    
+
     * comparisons are between rows (samples)
-    * input: 2D numpy array.  Limited support for non-2D arrays if 
+    * input: 2D numpy array.  Limited support for non-2D arrays if
     strict==False
     * output: numpy 2D array float ('d') type.  shape (inputrows, inputrows)
     for sane input data
@@ -1349,7 +1349,7 @@ def binary_dist_ochiai(datamtx, strict=True):
     * an all zero row compared with a not all zero row returns a distance of 1
     * if strict==True, raises ValueError if any of the input data is negative,
     not finite, or if the input data is not a rank 2 array (a matrix).
-    * if strict==False, assumes input data is a matrix with nonnegative 
+    * if strict==False, assumes input data is a matrix with nonnegative
     entries.  If rank of input data is < 2, returns an empty 2d array (shape:
     (0, 0) ).  If 0 rows or 0 colunms, also returns an empty 2d array.
     """
@@ -1373,7 +1373,7 @@ def binary_dist_ochiai(datamtx, strict=True):
         return zeros((0,0),'d')
     dists = zeros((numrows,numrows),'d')
     rowsums = datamtx.sum(axis=1)
-    
+
     for i in range(numrows):
         first = datamtx[i]
         a = rowsums[i]
@@ -1389,7 +1389,7 @@ def binary_dist_ochiai(datamtx, strict=True):
                 dist = 1.0 - (c/sqrt(a*b))
             dists[i][j] = dists[j][i] = dist
     return dists
-    
+
 def binary_dist_pearson(datamtx, strict=True):
     """Calculates binary pearson distance between rows, returns distance matrix
 
@@ -1412,7 +1412,7 @@ if __name__ == "__main__":
                             [0,0,0,0],
                             [8,6,2,1],
                                     ])
-    
+
     res = dist_euclidean(matrix1)
     print "euclidean distance result: \n"
     print res
