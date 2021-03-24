@@ -1,8 +1,6 @@
 PyCogent: A toolkit for making sense from sequence
 ==================================================
 
-The official PyCogent source code repository. For details on PyCogent, see http://www.pycogent.org/.
+PyCogent is legacy software and no longer maintained. Use `cogent3` instead.
 
-PyCogent includes connectors to remote databases, built-in generalized probabilistic techniques for working with biological sequences, and controllers for 3rd party applications.
-
-For PyCogent news and announcements, including notification of new releases, you can subscribe to the [PyCogent News and Announcements Blog](http://pycogent.wordpress.com).
+See the `cogent3` [documentation](https://cogent3.org) and [GitHub source repo](https://github.com/cogent3/cogent3).
